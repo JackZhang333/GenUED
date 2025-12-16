@@ -8,7 +8,7 @@ import path from "path";
 import { notion } from "../src/lib/notion/client";
 
 // Type for database property configurations
-type DatabaseProperty = DataSourceObjectResponse["properties"][string];
+type DatabaseProperty = DatabaseObjectResponse["properties"][string];
 
 /** Properly escape string for use in generated TypeScript code */
 function escapeForTypeScript(str: string): string {
@@ -131,23 +131,12 @@ async function generateSchemas() {
       continue;
     }
 
-    // First retrieve the database to get the data source ID
+    // Retrieve the database to get properties
     const database = (await notion.databases.retrieve({
       database_id: db.id,
     })) as DatabaseObjectResponse;
 
-    const dataSourceId = database.data_sources[0]?.id;
-    if (!dataSourceId) {
-      console.warn(`Skipping ${db.varName} — no data source found`);
-      continue;
-    }
-
-    // Then retrieve the data source to get properties
-    const dataSource = (await notion.dataSources.retrieve({
-      data_source_id: dataSourceId,
-    })) as DataSourceObjectResponse;
-
-    const props = dataSource.properties;
+    const props = database.properties;
 
     // save this to a file
     fs.writeFileSync(

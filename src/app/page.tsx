@@ -17,9 +17,9 @@ import {
 import { createMetadata, createPersonJsonLd } from "@/lib/metadata";
 
 export const metadata: Metadata = createMetadata({
-  title: "Brian Lovin",
+  title: "Jack Chou",
   description:
-    "Brian Lovin is a designer and software engineer living in San Francisco, currently designing AI products at Notion.",
+    "Jack Chou is a designer and software engineer living in San Francisco, currently designing AI products at Notion.",
   path: "/",
 });
 
@@ -38,7 +38,7 @@ export default function Home() {
             <Section>
               <Image
                 src="/img/avatar.jpg"
-                alt="Brian Lovin"
+                alt="Jack Chou"
                 width={60}
                 height={60}
                 draggable={false}
@@ -46,16 +46,16 @@ export default function Home() {
               />
 
               <h1 id="home-title" className="text-2xl font-semibold">
-                Brian Lovin
+                Jack Chou
               </h1>
 
               <p className="text-secondary text-2xl font-semibold text-pretty">
-                I’m a software designer living in San Francisco, currently making AI products at{" "}
-                Notion.
+                I’m a software designer living in Hangzhou, currently making AI products at{" "}
+                GenUED.
               </p>
             </Section>
 
-            <Section className="flex flex-row gap-2">
+            {/* <Section className="flex flex-row gap-2">
               <ListItem href="https://x.com/brian_lovin" className="group -ml-1 p-2">
                 <XIcon size={28} className="text-quaternary group-hover:text-primary select-none" />
               </ListItem>
@@ -66,13 +66,13 @@ export default function Home() {
                   playIconClassName="fill-[var(--background-color-main)] sm:fill-[var(--background-color-elevated)]  group-hover:fill-white"
                 />
               </ListItem>
-              <ListItem href="https://github.com/brianlovin" className="group p-2">
+              <ListItem href="https://github.com/genued" className="group p-2">
                 <GitHubIcon
                   size={28}
                   className="text-quaternary group-hover:text-primary select-none"
                 />
               </ListItem>
-            </Section>
+            </Section> */}
 
             <Section>
               <SectionHeading>Projects</SectionHeading>
@@ -97,7 +97,7 @@ export default function Home() {
               </List>
             </Section>
 
-            <Section>
+            {/* <Section>
               <SectionHeading>Work</SectionHeading>
               <List className="gap-8">
                 {work.map(({ name, href, role, period, icon }) => (
@@ -128,14 +128,14 @@ export default function Home() {
                   </ListItem>
                 ))}
               </List>
-            </Section>
+            </Section> */}
 
-            <Section>
+            {/* <Section>
               <SectionHeading>Speaking</SectionHeading>
               <Suspense fallback={<SpeakingListSkeleton />}>
                 <SpeakingList />
               </Suspense>
-            </Section>
+            </Section> */}
           </div>
         </div>
       </div>
@@ -186,30 +186,30 @@ const projects = [
     description: "A curated collection of good websites",
     external: false,
   },
-  {
-    name: "Staff Design",
-    href: "https://staff.design",
-    description: "Navigating the IC career path",
-    external: true,
-  },
-  {
-    name: "Design Details",
-    href: "https://designdetails.fm",
-    description: "A podcast about design and technology",
-    external: true,
-  },
-  {
-    name: "How to Computer Better",
-    href: "https://brianlovin.notion.site/how-to-computer-better",
-    description: "Get good at computering",
-    external: true,
-  },
-  {
-    name: "Crit",
-    href: "https://www.youtube.com/playlist?list=PLJu44Klx1pB_8GSOUeDNDllPICvMJKSut",
-    description: "App design critique",
-    external: true,
-  },
+  // {
+  //   name: "Staff Design",
+  //   href: "https://staff.design",
+  //   description: "Navigating the IC career path",
+  //   external: true,
+  // },
+  // {
+  //   name: "Design Details",
+  //   href: "https://designdetails.fm",
+  //   description: "A podcast about design and technology",
+  //   external: true,
+  // },
+  // {
+  //   name: "How to Computer Better",
+  //   href: "https://genued.notion.site/how-to-computer-better",
+  //   description: "Get good at computering",
+  //   external: true,
+  // },
+  // {
+  //   name: "Crit",
+  //   href: "https://www.youtube.com/playlist?list=PLJu44Klx1pB_8GSOUeDNDllPICvMJKSut",
+  //   description: "App design critique",
+  //   external: true,
+  // },
 ];
 
 type WorkIcon =

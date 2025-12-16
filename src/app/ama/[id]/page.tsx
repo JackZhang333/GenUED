@@ -19,7 +19,7 @@ export async function generateMetadata(props: {
       };
     }
 
-    const description = item.description || `Question answered by Brian Lovin`;
+    const description = item.description || `Question answered by Jack Chou`;
 
     return createMetadata({
       title: item.title,

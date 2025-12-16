@@ -39,15 +39,15 @@ export const navigationItems: NavigationItem[] = [
     isActive: (pathname) => pathname.startsWith("/writing"),
     section: "main",
   },
-  {
-    id: "better-hn",
-    label: "Hacker News",
-    href: "/hn",
-    icon: Triangle,
-    keywords: ["hackernews", "hn", "news"],
-    isActive: (pathname) => pathname.startsWith("/hn"),
-    section: "projects",
-  },
+  // {
+  //   id: "better-hn",
+  //   label: "Hacker News",
+  //   href: "/hn",
+  //   icon: Triangle,
+  //   keywords: ["hackernews", "hn", "news"],
+  //   isActive: (pathname) => pathname.startsWith("/hn"),
+  //   section: "projects",
+  // },
 
   {
     id: "app-dissection",

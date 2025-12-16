@@ -15,9 +15,9 @@ import {
 import { createMetadata, createPersonJsonLd } from "@/lib/metadata";
 
 export const metadata: Metadata = createMetadata({
-  title: "Brian Lovin",
+  title: "Jack Chou",
   description:
-    "Brian Lovin is a designer and software engineer living in San Francisco, currently designing AI products at Notion.",
+    "Jack Chou is a designer and software engineer living in San Francisco, currently designing AI products at Notion.",
   path: "/",
 });
 
@@ -35,7 +35,7 @@ export default function Home() {
           <Section>
             <Image
               src="/img/avatar.jpg"
-              alt="Brian Lovin"
+              alt="Jack Chou"
               width={44}
               height={44}
               draggable={false}
@@ -164,7 +164,7 @@ export default function Home() {
 // Data arrays
 const speaking = [
   {
-    title: "Founder Fridays with Brian Lovin",
+    title: "Founder Fridays with Jack Chou",
     date: "Aug '25",
     href: "https://www.youtube.com/watch?v=VZgrsDkZjHU",
   },
@@ -350,7 +350,7 @@ const socials = [
   },
   {
     name: "GitHub",
-    href: "https://github.com/brianlovin",
+    href: "https://github.com/genued",
     icon: GitHubIcon,
   },
 ];
@@ -394,7 +394,7 @@ const projects = [
   },
   {
     name: "How to Computer Better",
-    href: "https://brianlovin.notion.site/how-to-computer-better",
+    href: "https://genued.notion.site/how-to-computer-better",
     description: "Get good at computering",
     external: true,
   },

@@ -20,7 +20,7 @@ export default async function Image(props: { params: Promise<{ id: string }> }) 
       // Fallback to generic title if post not found
       return generateOGImage({
         title: "Hacker News",
-        url: "brianlovin.com/hn",
+        url: "genued.com/hn",
       });
     }
 
@@ -29,13 +29,13 @@ export default async function Image(props: { params: Promise<{ id: string }> }) 
 
     return generateOGImage({
       title: cleanTitle,
-      url: `brianlovin.com/hn/${id}`,
+      url: `genued.com/hn/${id}`,
     });
   } catch {
     // Fallback on error
     return generateOGImage({
       title: "Hacker News",
-      url: "brianlovin.com/hn",
+      url: "genued.com/hn",
     });
   }
 }

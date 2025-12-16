@@ -18,7 +18,7 @@ export default function AMADetail() {
   // Update document title when question is available
   useEffect(() => {
     if (question?.title) {
-      document.title = `${question.title} | Brian Lovin`;
+      document.title = `${question.title} | Jack Chou`;
     }
   }, [question?.title]);
 
@@ -36,18 +36,18 @@ export default function AMADetail() {
 
   const createdAt = question.createdAt
     ? new Date(question.createdAt).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      })
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    })
     : undefined;
 
   const answeredAt = question.answeredAt
     ? new Date(question.answeredAt).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      })
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    })
     : undefined;
 
   return (

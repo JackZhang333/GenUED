@@ -16,12 +16,12 @@ export default async function Image(props: { params: Promise<{ slug: string }> }
     // Fallback to generic title if post not found
     return generateOGImage({
       title: "App Dissection",
-      url: "brianlovin.com/app-dissection",
+      url: "genued.com/app-dissection",
     });
   }
 
   return generateOGImage({
     title: `App Dissection / ${post.title}`,
-    url: `brianlovin.com/app-dissection/${params.slug}`,
+    url: `genued.com/app-dissection/${params.slug}`,
   });
 }

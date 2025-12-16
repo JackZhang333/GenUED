@@ -1,7 +1,7 @@
 import { externalFetcher } from "@/lib/fetcher";
 import { HackerNewsComment, HackerNewsPost } from "@/types/hackernews";
 
-const BASE_URL = "https://brianlovin.com";
+const BASE_URL = "https://genued.com";
 const TOP_BASE_URL = "https://hacker-news.firebaseio.com/v0";
 const ITEM_BASE_URL = "https://api.hnpwa.com/v0";
 

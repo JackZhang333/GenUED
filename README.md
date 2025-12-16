@@ -1,3 +1,3 @@
 # briOS
 
-My website — https://brianlovin.com
+My website — https://genued.com

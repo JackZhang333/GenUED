@@ -35,7 +35,7 @@ export async function generateMetadata(props: {
   const { metadata } = content;
 
   // Extract text content from blocks for description
-  const description = metadata.excerpt || "A post by Brian Lovin";
+  const description = metadata.excerpt || "A post by Jack Chou";
 
   return createMetadata({
     title: metadata.title,
@@ -71,7 +71,7 @@ export default async function WritingPostPage(props: { params: Promise<{ slug: s
   // Generate JSON-LD structured data
   const articleJsonLd = createArticleJsonLd({
     title: metadata.title,
-    description: metadata.excerpt || "A post by Brian Lovin",
+    description: metadata.excerpt || "A post by Jack Chou",
     path: `/writing/${slug}`,
     publishedTime: metadata.published || metadata.createdTime,
     modifiedTime: metadata.createdTime,

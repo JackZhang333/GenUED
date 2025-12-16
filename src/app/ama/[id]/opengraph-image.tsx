@@ -19,7 +19,7 @@ export default async function Image(props: { params: Promise<{ id: string }> }) 
       // Fallback to generic title if item not found
       return generateOGImage({
         title: "AMA",
-        url: "brianlovin.com/ama",
+        url: "genued.com/ama",
       });
     }
 
@@ -28,13 +28,13 @@ export default async function Image(props: { params: Promise<{ id: string }> }) 
 
     return generateOGImage({
       title: truncatedTitle,
-      url: `brianlovin.com/ama/${id}`,
+      url: `genued.com/ama/${id}`,
     });
   } catch {
     // Fallback on error
     return generateOGImage({
       title: "AMA",
-      url: "brianlovin.com/ama",
+      url: "genued.com/ama",
     });
   }
 }

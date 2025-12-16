@@ -1,46 +1,55 @@
 {
   "props": {
+    "status": {
+      "id": "%3EDX%3E",
+      "name": "status",
+      "description": null,
+      "type": "select",
+      "select": {
+        "options": [
+          {
+            "id": "798c0a60-3211-4e78-b4f7-1efb1d17425c",
+            "name": "Published",
+            "color": "red",
+            "description": null
+          }
+        ]
+      }
+    },
+    "id": {
+      "id": "DqVu",
+      "name": "id",
+      "description": null,
+      "type": "rich_text",
+      "rich_text": {}
+    },
     "Slug": {
-      "id": "CqXd",
+      "id": "%5BGKO",
       "name": "Slug",
       "description": null,
       "type": "rich_text",
       "rich_text": {}
     },
-    "Excerpt": {
-      "id": "I%5Dtv",
-      "name": "Excerpt",
+    "FeatureImage": {
+      "id": "uZk%3B",
+      "name": "FeatureImage",
       "description": null,
-      "type": "rich_text",
-      "rich_text": {}
+      "type": "files",
+      "files": {}
     },
     "Published": {
-      "id": "UYHC",
+      "id": "vqky",
       "name": "Published",
       "description": null,
       "type": "date",
       "date": {}
     },
-    "FeatureImage": {
-      "id": "%5D%40yA",
-      "name": "FeatureImage",
+    "Excerpt": {
+      "id": "y%7BkY",
+      "name": "Excerpt",
       "description": null,
-      "type": "url",
-      "url": {}
-    },
-    "Optimize images": {
-      "id": "fKdx",
-      "name": "Optimize images",
-      "description": null,
-      "type": "button",
-      "button": {}
-    },
-    "Created time": {
-      "id": "xX%60%3A",
-      "name": "Created time",
-      "description": null,
-      "type": "created_time",
-      "created_time": {}
+      "type": "rich_text",
+      "rich_text": {}
     },
     "Name": {
       "id": "title",

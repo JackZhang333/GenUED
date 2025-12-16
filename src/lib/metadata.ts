@@ -4,20 +4,20 @@ import type { Metadata } from "next";
  * Site-wide metadata constants
  */
 export const SITE_CONFIG = {
-  name: "Brian Lovin",
-  title: "Brian Lovin",
+  name: "Jack Chou",
+  title: "Jack Chou",
   description:
-    "Designer and software engineer living in San Francisco. Currently designing AI products at Notion.",
-  url: "https://brianlovin.com",
+    "Designer and software engineer living in Hangzhou, Zhejiang, China. Currently working at GenuedOS, focus on genenative UI/UX design. ",
+  url: "https://jackchou.com",
   author: {
-    name: "Brian Lovin",
-    twitter: "@brian_lovin",
-    twitterUrl: "https://x.com/brian_lovin",
-    github: "https://github.com/brianlovin",
+    name: "Jack Chou",
+    twitter: "@jack_chou",
+    twitterUrl: "https://x.com/jack_chou",
+    github: "https://github.com/jackchou",
   },
   social: {
     twitter: {
-      handle: "@brian_lovin",
+      handle: "@jack_chou",
       cardType: "summary_large_image" as const,
     },
   },

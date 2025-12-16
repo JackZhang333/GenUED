@@ -83,7 +83,7 @@ export function MobileNavMenu() {
             </div>
 
             {/* Social links */}
-            <div className="mt-8 flex flex-row items-center gap-4">
+            {/* <div className="mt-8 flex flex-row items-center gap-4">
               <Link
                 href="https://x.com/brian_lovin"
                 className="text-quaternary hover:text-primary -ml-2 p-2"
@@ -103,13 +103,13 @@ export function MobileNavMenu() {
                 />
               </Link>
               <Link
-                href="https://github.com/brianlovin"
+                href="https://github.com/genued"
                 className="text-quaternary hover:text-primary p-2"
                 onClick={() => setIsOpen(false)}
               >
                 <GitHubIcon size={24} />
               </Link>
-            </div>
+            </div> */}
           </nav>
         </motion.div>
       )}

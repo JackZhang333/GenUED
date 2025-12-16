@@ -19,25 +19,25 @@ import {
 } from "./types";
 
 // Cache for database ID -> data source ID mapping
-const dataSourceIdCache = new Map<string, string>();
+// const dataSourceIdCache = new Map<string, string>();
 
-async function getDataSourceId(databaseId: string): Promise<string> {
-  if (dataSourceIdCache.has(databaseId)) {
-    return dataSourceIdCache.get(databaseId)!;
-  }
+// async function getDataSourceId(databaseId: string): Promise<string> {
+//   if (dataSourceIdCache.has(databaseId)) {
+//     return dataSourceIdCache.get(databaseId)!;
+//   }
 
-  const database = (await notion.databases.retrieve({
-    database_id: databaseId,
-  })) as DatabaseObjectResponse;
+//   const database = (await notion.databases.retrieve({
+//     database_id: databaseId,
+//   })) as DatabaseObjectResponse;
 
-  const dataSourceId = database.data_sources[0]?.id;
-  if (!dataSourceId) {
-    throw new Error(`No data source found for database ${databaseId}`);
-  }
+//   const dataSourceId = database.data_sources[0]?.id;
+//   if (!dataSourceId) {
+//     throw new Error(`No data source found for database ${databaseId}`);
+//   }
 
-  dataSourceIdCache.set(databaseId, dataSourceId);
-  return dataSourceId;
-}
+//   dataSourceIdCache.set(databaseId, dataSourceId);
+//   return dataSourceId;
+// }
 
 // ===== Generic Content Retrieval =====
 
@@ -83,10 +83,11 @@ export async function getFullContent(
 
 export async function getStackDatabaseItems(): Promise<NotionStackItem[]> {
   try {
-    const databaseId = process.env.NOTION_STACK_DATABASE_ID || "";
-    const dataSourceId = await getDataSourceId(databaseId);
-    const response = await notion.dataSources.query({
-      data_source_id: dataSourceId,
+    const databaseId = process.env.NOTION_STACK_DATABASE_ID;
+    if (!databaseId) return [];
+
+    const response = await notion.databases.query({
+      database_id: databaseId,
       sorts: [
         {
           property: "Name",
@@ -146,10 +147,11 @@ export async function getStackDatabaseItems(): Promise<NotionStackItem[]> {
 
 export async function getGoodWebsitesDatabaseItems(): Promise<GoodWebsiteItem[]> {
   try {
-    const databaseId = process.env.NOTION_GOOD_WEBSITES_DATABASE_ID || "";
-    const dataSourceId = await getDataSourceId(databaseId);
-    const response = await notion.dataSources.query({
-      data_source_id: dataSourceId,
+    const databaseId = process.env.NOTION_GOOD_WEBSITES_DATABASE_ID;
+    if (!databaseId) return [];
+
+    const response = await notion.databases.query({
+      database_id: databaseId,
       sorts: [
         {
           property: "Name",
@@ -204,10 +206,11 @@ export async function getWritingDatabaseItems(
   pageSize: number = 20,
 ): Promise<{ items: NotionItem[]; nextCursor: string | null }> {
   try {
-    const databaseId = process.env.NOTION_WRITING_DATABASE_ID || "";
-    const dataSourceId = await getDataSourceId(databaseId);
-    const response = await notion.dataSources.query({
-      data_source_id: dataSourceId,
+    const databaseId = process.env.NOTION_WRITING_DATABASE_ID;
+    if (!databaseId) return { items: [], nextCursor: null };
+
+    const response = await notion.databases.query({
+      database_id: databaseId,
       page_size: pageSize,
       ...(cursor ? { start_cursor: cursor } : {}),
       filter: {
@@ -305,10 +308,11 @@ export async function getWritingPostContentBySlug(
   slug: string,
 ): Promise<{ blocks: ProcessedBlock[]; metadata: NotionItem } | null> {
   try {
-    const databaseId = process.env.NOTION_WRITING_DATABASE_ID || "";
-    const dataSourceId = await getDataSourceId(databaseId);
-    const response = await notion.dataSources.query({
-      data_source_id: dataSourceId,
+    const databaseId = process.env.NOTION_WRITING_DATABASE_ID;
+    if (!databaseId) return null;
+
+    const response = await notion.databases.query({
+      database_id: databaseId,
       filter: {
         property: "Slug",
         rich_text: {
@@ -318,12 +322,13 @@ export async function getWritingPostContentBySlug(
     });
 
     if (response.results.length === 0) {
+      console.log(`No writing post found with slug ${slug}`);
       return null;
     }
 
     const page = response.results[0];
     if (!hasProperties(page)) return null;
-
+    console.log("Found page with slug " + slug + ": " + page.id);
     return getWritingPostContent(page.id);
   } catch (error) {
     console.error(`Error fetching writing post content for slug ${slug}:`, error);
@@ -374,10 +379,11 @@ export async function getAmaDatabaseItems(
   pageSize: number = 20,
 ): Promise<{ items: NotionAmaItem[]; nextCursor: string | null }> {
   try {
-    const databaseId = process.env.NOTION_AMA_DATABASE_ID || "";
-    const dataSourceId = await getDataSourceId(databaseId);
-    const response = await notion.dataSources.query({
-      data_source_id: dataSourceId,
+    const databaseId = process.env.NOTION_AMA_DATABASE_ID;
+    if (!databaseId) return { items: [], nextCursor: null };
+
+    const response = await notion.databases.query({
+      database_id: databaseId,
       page_size: pageSize,
       ...(cursor ? { start_cursor: cursor } : {}),
       filter: {
@@ -437,10 +443,11 @@ export async function getListeningHistoryDatabaseItems(
   pageSize: number = 20,
 ): Promise<{ items: NotionListeningHistoryItem[]; nextCursor: string | null }> {
   try {
-    const databaseId = process.env.NOTION_MUSIC_DATABASE_ID || "";
-    const dataSourceId = await getDataSourceId(databaseId);
-    const response = await notion.dataSources.query({
-      data_source_id: dataSourceId,
+    const databaseId = process.env.NOTION_MUSIC_DATABASE_ID;
+    if (!databaseId) return { items: [], nextCursor: null };
+
+    const response = await notion.databases.query({
+      database_id: databaseId,
       page_size: pageSize,
       ...(cursor ? { start_cursor: cursor } : {}),
       sorts: [
@@ -500,10 +507,11 @@ export async function getDesignDetailsEpisodeDatabaseItems(
   pageSize: number = 20,
 ): Promise<{ items: NotionDesignDetailsEpisodeItem[]; nextCursor: string | null }> {
   try {
-    const databaseId = process.env.NOTION_DESIGN_DETAILS_EPISODES_DATABASE_ID || "";
-    const dataSourceId = await getDataSourceId(databaseId);
-    const response = await notion.dataSources.query({
-      data_source_id: dataSourceId,
+    const databaseId = process.env.NOTION_DESIGN_DETAILS_EPISODES_DATABASE_ID;
+    if (!databaseId) return { items: [], nextCursor: null };
+
+    const response = await notion.databases.query({
+      database_id: databaseId,
       page_size: pageSize,
       ...(cursor ? { start_cursor: cursor } : {}),
       sorts: [
@@ -556,10 +564,11 @@ export async function getDesignDetailsEpisodeDatabaseItems(
 
 export async function getSpeakingItems(): Promise<NotionSpeakingItem[]> {
   try {
-    const databaseId = process.env.NOTION_SPEAKING_DATABASE_ID || "";
-    const dataSourceId = await getDataSourceId(databaseId);
-    const response = await notion.dataSources.query({
-      data_source_id: dataSourceId,
+    const databaseId = process.env.NOTION_SPEAKING_DATABASE_ID;
+    if (!databaseId) return [];
+
+    const response = await notion.databases.query({
+      database_id: databaseId,
       sorts: [
         {
           property: "Date",
