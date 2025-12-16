@@ -1,6 +1,4 @@
 import { ImageResponse } from "@vercel/og";
-import fs from "fs";
-import path from "path";
 
 // OG Image dimensions
 export const OG_WIDTH = 1200;
@@ -18,36 +16,10 @@ export const URL_SIZE = 32;
 // Avatar
 export const AVATAR_SIZE = 100;
 
-// Font loading from Google Fonts
-async function loadGoogleFont(font: string, weight: number, text: string): Promise<ArrayBuffer> {
-  try {
-    const url = `https://fonts.googleapis.com/css2?family=${font}:wght@${weight}&text=${encodeURIComponent(text)}`;
 
-    const css = await (await fetch(url)).text();
-    const resource = css.match(/src: url\((.+)\) format\('(opentype|truetype)'\)/);
-
-    if (resource) {
-      const response = await fetch(resource[1]);
-      if (response.status === 200) {
-        const buffer = await response.arrayBuffer();
-        return buffer;
-      }
-    }
-
-    throw new Error(`Failed to load font: ${font} ${weight}`);
-  } catch (error) {
-    console.error(`[OG] Error loading font ${font} ${weight}:`, error);
-    throw error;
-  }
-}
 
 // Load avatar as base64
-export async function loadAvatar(): Promise<string> {
-  const avatarPath = path.join(process.cwd(), "public/img/avatar.jpg");
-  const avatarBuffer = fs.readFileSync(avatarPath);
-  const base64 = avatarBuffer.toString("base64");
-  return `data:image/jpeg;base64,${base64}`;
-}
+
 
 interface OGImageProps {
   title: string;
@@ -73,15 +45,6 @@ export function truncateOGTitle(title: string, maxLines: number = 3): string {
 
 export async function generateOGImage({ title, url }: OGImageProps) {
   try {
-    // Combine all text for font loading
-    const allText = `${title}${url}`;
-
-    const [interRegularFont, interSemiBoldFont, avatarData] = await Promise.all([
-      loadGoogleFont("Inter", 400, allText),
-      loadGoogleFont("Inter", 700, allText),
-      loadAvatar(),
-    ]);
-
     return new ImageResponse(
       <div
         style={{
@@ -94,18 +57,8 @@ export async function generateOGImage({ title, url }: OGImageProps) {
           backgroundColor: "white",
         }}
       >
-        {/* Avatar at the top */}
-        <div style={{ display: "flex" }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={avatarData}
-            alt="Avatar"
-            width={AVATAR_SIZE}
-            height={AVATAR_SIZE}
-            style={{
-              borderRadius: "50%",
-            }}
-          />
+        {/* Placeholder for top area */}
+        <div style={{ display: "flex", height: AVATAR_SIZE }}>
         </div>
 
         {/* Title and URL at the bottom */}
@@ -113,7 +66,7 @@ export async function generateOGImage({ title, url }: OGImageProps) {
           <div
             style={{
               fontSize: TITLE_SIZE,
-              fontFamily: "Inter",
+              fontFamily: "Noto Sans",
               fontWeight: 700,
               color: PRIMARY_COLOR,
               lineHeight: 1.2,
@@ -129,7 +82,7 @@ export async function generateOGImage({ title, url }: OGImageProps) {
           <div
             style={{
               fontSize: URL_SIZE,
-              fontFamily: "Inter",
+              fontFamily: "Noto Sans",
               fontWeight: 400,
               color: TERTIARY_COLOR,
             }}
@@ -141,20 +94,6 @@ export async function generateOGImage({ title, url }: OGImageProps) {
       {
         width: OG_WIDTH,
         height: OG_HEIGHT,
-        fonts: [
-          {
-            name: "Inter",
-            data: interRegularFont,
-            style: "normal",
-            weight: 400,
-          },
-          {
-            name: "Inter",
-            data: interSemiBoldFont,
-            style: "normal",
-            weight: 700,
-          },
-        ],
       },
     );
   } catch (error) {

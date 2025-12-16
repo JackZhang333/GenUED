@@ -1,6 +1,5 @@
 import type {
   DatabaseObjectResponse,
-  DataSourceObjectResponse,
 } from "@notionhq/client/build/src/api-endpoints";
 import fs from "fs";
 import path from "path";
@@ -126,29 +125,50 @@ async function generateSchemas() {
   ];
 
   for (const db of databases) {
+    let props: Record<string, DatabaseProperty> | undefined;
+
     if (!db.id) {
-      console.warn(`Skipping ${db.varName} — no ID provided`);
-      continue;
+      console.warn(`⚠️  Skipping Notion fetch for ${db.varName} — no ID provided`);
+      // Try to load from cache
+      const cachePath = path.join(process.cwd(), "schemas", `${db.varName}Schema.json`);
+      if (fs.existsSync(cachePath)) {
+        try {
+          console.log(`   Using cached schema for ${db.varName}`);
+          const cached = JSON.parse(fs.readFileSync(cachePath, "utf-8"));
+          if (cached && cached.props) {
+            props = cached.props;
+          }
+        } catch (e) {
+          console.error(`   Failed to read cache for ${db.varName}`, e);
+        }
+      }
+
+      if (!props) {
+        console.warn(`   No cache found for ${db.varName}, skipping generation entirely.`);
+        continue;
+      }
+    } else {
+      // Retrieve the database to get properties
+      const database = (await notion.databases.retrieve({
+        database_id: db.id,
+      })) as DatabaseObjectResponse;
+
+      props = database.properties;
+
+      // save this to a file
+      fs.writeFileSync(
+        path.join(process.cwd(), "schemas", `${db.varName}Schema.json`),
+        JSON.stringify({ props }, null, 2),
+      );
     }
 
-    // Retrieve the database to get properties
-    const database = (await notion.databases.retrieve({
-      database_id: db.id,
-    })) as DatabaseObjectResponse;
-
-    const props = database.properties;
-
-    // save this to a file
-    fs.writeFileSync(
-      path.join(process.cwd(), "schemas", `${db.varName}Schema.json`),
-      JSON.stringify({ props }, null, 2),
-    );
-
     const propLines: string[] = [];
-    for (const [name, prop] of Object.entries(props)) {
-      const key = name.includes(" ") || name.includes("-") ? `"${name}"` : name;
-      const zodType = notionPropToZod(prop);
-      propLines.push(`  ${key}: ${zodType},`);
+    if (props) {
+      for (const [name, prop] of Object.entries(props)) {
+        const key = name.includes(" ") || name.includes("-") ? `"${name}"` : name;
+        const zodType = notionPropToZod(prop);
+        propLines.push(`  ${key}: ${zodType},`);
+      }
     }
 
     schemaLines.push(`export const ${db.varName}Schema = z.object({`);

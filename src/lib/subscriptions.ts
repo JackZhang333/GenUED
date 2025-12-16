@@ -1,4 +1,4 @@
-import { connect } from "@planetscale/database";
+import { connect, Connection } from "@planetscale/database";
 
 /**
  * Email subscription database management
@@ -10,25 +10,35 @@ export interface EmailSubscriptionRow {
   type: string;
 }
 
-// Environment validation
-if (!process.env.DATABASE_HOST) {
-  throw new Error("DATABASE_HOST environment variable is not set");
-}
+let dbInstance: Connection | null = null;
 
-if (!process.env.DATABASE_USERNAME) {
-  throw new Error("DATABASE_USERNAME environment variable is not set");
-}
+function getDb(): Connection {
+  if (dbInstance) {
+    return dbInstance;
+  }
 
-if (!process.env.DATABASE_PASSWORD) {
-  throw new Error("DATABASE_PASSWORD environment variable is not set");
-}
+  // Environment validation - lazy loaded
+  if (!process.env.DATABASE_HOST) {
+    throw new Error("DATABASE_HOST environment variable is not set");
+  }
 
-// Create singleton PlanetScale database connection
-const db = connect({
-  host: process.env.DATABASE_HOST,
-  username: process.env.DATABASE_USERNAME,
-  password: process.env.DATABASE_PASSWORD,
-});
+  if (!process.env.DATABASE_USERNAME) {
+    throw new Error("DATABASE_USERNAME environment variable is not set");
+  }
+
+  if (!process.env.DATABASE_PASSWORD) {
+    throw new Error("DATABASE_PASSWORD environment variable is not set");
+  }
+
+  // Create singleton PlanetScale database connection
+  dbInstance = connect({
+    host: process.env.DATABASE_HOST,
+    username: process.env.DATABASE_USERNAME,
+    password: process.env.DATABASE_PASSWORD,
+  });
+
+  return dbInstance;
+}
 
 // Constant for HN subscription type
 const HN_TYPE = "HACKER_NEWS";
@@ -37,6 +47,7 @@ const HN_TYPE = "HACKER_NEWS";
  * Fetch all email subscribers for Hacker News digest
  */
 export async function getHNSubscribers(): Promise<EmailSubscriptionRow[]> {
+  const db = getDb();
   const result = await db.execute(`SELECT * FROM EmailSubscription WHERE type = ?`, [HN_TYPE]);
   return result.rows as EmailSubscriptionRow[];
 }
@@ -45,6 +56,7 @@ export async function getHNSubscribers(): Promise<EmailSubscriptionRow[]> {
  * Fetch a single subscriber by email
  */
 export async function getSubscriberByEmail(email: string): Promise<EmailSubscriptionRow | null> {
+  const db = getDb();
   const result = await db.execute(
     `SELECT * FROM EmailSubscription WHERE email = ? AND type = ? LIMIT 1`,
     [email, HN_TYPE],
@@ -56,6 +68,7 @@ export async function getSubscriberByEmail(email: string): Promise<EmailSubscrip
  * Delete a subscription by email
  */
 export async function deleteSubscription(email: string): Promise<boolean> {
+  const db = getDb();
   const result = await db.execute(`DELETE FROM EmailSubscription WHERE email = ? AND type = ?`, [
     email,
     HN_TYPE,
@@ -67,6 +80,7 @@ export async function deleteSubscription(email: string): Promise<boolean> {
  * Get count of HN subscribers
  */
 export async function getHNSubscriberCount(): Promise<number> {
+  const db = getDb();
   const result = await db.execute(
     `SELECT COUNT(*) as count FROM EmailSubscription WHERE type = ?`,
     [HN_TYPE],
@@ -81,6 +95,7 @@ export async function getHNSubscriberCount(): Promise<number> {
 export async function createSubscription(
   email: string,
 ): Promise<{ success: boolean; alreadyExists: boolean }> {
+  const db = getDb();
   // Check if subscription already exists
   const existing = await getSubscriberByEmail(email);
   if (existing) {
