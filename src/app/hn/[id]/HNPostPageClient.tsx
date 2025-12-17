@@ -48,7 +48,7 @@ export default function HNPostPageClient() {
   useEffect(() => {
     if (post?.title) {
       const cleanTitle = stripHtmlTags(post.title);
-      document.title = `${cleanTitle} | Jack Chou`;
+      document.title = `${cleanTitle} | Johnny Chou`;
     }
   }, [post?.title]);
 

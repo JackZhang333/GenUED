@@ -4,13 +4,13 @@ import type { Metadata } from "next";
  * Site-wide metadata constants
  */
 export const SITE_CONFIG = {
-  name: "Jack Chou",
-  title: "Jack Chou",
+  name: "Johnny Chou",
+  title: "Johnny Chou",
   description:
     "Designer and software engineer living in Hangzhou, Zhejiang, China. Currently working at GenuedOS, focus on genenative UI/UX design. ",
   url: "https://jackchou.com",
   author: {
-    name: "Jack Chou",
+    name: "Johnny Chou",
     twitter: "@jack_chou",
     twitterUrl: "https://x.com/jack_chou",
     github: "https://github.com/jackchou",

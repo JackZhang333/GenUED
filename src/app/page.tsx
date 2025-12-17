@@ -17,9 +17,9 @@ import {
 import { createMetadata, createPersonJsonLd } from "@/lib/metadata";
 
 export const metadata: Metadata = createMetadata({
-  title: "Jack Chou",
+  title: "Johnny Chou",
   description:
-    "Jack Chou is a designer and software engineer living in San Francisco, currently designing AI products at Notion.",
+    "Johnny Chou is a designer and software engineer living in San Francisco, currently designing AI products at Notion.",
   path: "/",
 });
 
@@ -38,7 +38,7 @@ export default function Home() {
             <Section>
               <Image
                 src="/img/avatar.jpg"
-                alt="Jack Chou"
+                alt="Johnny Chou"
                 width={60}
                 height={60}
                 draggable={false}
@@ -46,7 +46,7 @@ export default function Home() {
               />
 
               <h1 id="home-title" className="text-2xl font-semibold">
-                Jack Chou
+                Johnny Chou
               </h1>
 
               <p className="text-secondary text-2xl font-semibold text-pretty">

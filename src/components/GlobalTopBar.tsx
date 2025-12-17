@@ -119,7 +119,7 @@ export function GlobalTopBar() {
         <IconButton className="rounded-full" size="lg" onClick={() => setIsOpen(!isOpen)}>
           <MenuToggle isOpen={isOpen} />
         </IconButton>
-        {!isHomePage && <BreadcrumbLabel href="/">Jack Chou</BreadcrumbLabel>}
+        {!isHomePage && <BreadcrumbLabel href="/">Johnny Chou</BreadcrumbLabel>}
         {currentNavItem && !isHomePage && (
           <>
             <BreadcrumbDivider />
