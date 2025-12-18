@@ -8,6 +8,12 @@
       "select": {
         "options": [
           {
+            "id": "dxdb",
+            "name": "draft",
+            "color": "brown",
+            "description": null
+          },
+          {
             "id": "798c0a60-3211-4e78-b4f7-1efb1d17425c",
             "name": "Published",
             "color": "red",

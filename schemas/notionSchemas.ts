@@ -27,7 +27,7 @@ export const AMASchema = z.object({
 export type AMA = z.infer<typeof AMASchema>;
 
 export const WritingSchema = z.object({
-  status: z.enum(["Published"]).optional(),
+  status: z.enum(["draft", "Published"]).optional(),
   id: z.string().optional(),
   Slug: z.string().optional(),
   FeatureImage: z.array(z.any()).optional(),
