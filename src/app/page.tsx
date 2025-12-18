@@ -150,18 +150,18 @@ const projects = [
     description: "Notes on software and other things",
     external: false,
   },
-  {
-    name: "HN",
-    href: "/hn",
-    description: "A minimal hacker news reader",
-    external: false,
-  },
-  {
-    name: "App Dissection",
-    href: "/app-dissection",
-    description: "Breaking down well-designed apps",
-    external: false,
-  },
+  // {
+  //   name: "HN",
+  //   href: "/hn",
+  //   description: "A minimal hacker news reader",
+  //   external: false,
+  // },
+  // {
+  //   name: "App Dissection",
+  //   href: "/app-dissection",
+  //   description: "Breaking down well-designed apps",
+  //   external: false,
+  // },
   {
     name: "Stack",
     href: "/stack",
