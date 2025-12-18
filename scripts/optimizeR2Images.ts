@@ -10,27 +10,6 @@ const notion = new Client({
   auth: process.env.NOTION_TOKEN,
 });
 
-// Cache for database ID -> data source ID mapping
-const dataSourceIdCache = new Map<string, string>();
-
-async function getDataSourceId(databaseId: string): Promise<string> {
-  if (dataSourceIdCache.has(databaseId)) {
-    return dataSourceIdCache.get(databaseId)!;
-  }
-
-  const database = (await notion.databases.retrieve({
-    database_id: databaseId,
-  })) as DatabaseObjectResponse;
-
-  const dataSourceId = database.data_sources[0]?.id;
-  if (!dataSourceId) {
-    throw new Error(`No data source found for database ${databaseId}`);
-  }
-
-  dataSourceIdCache.set(databaseId, dataSourceId);
-  return dataSourceId;
-}
-
 // Initialize R2 S3 client
 const s3Client = new S3Client({
   region: "auto",
@@ -307,9 +286,8 @@ async function optimizeGoodWebsites() {
   console.log("\n🌐 Processing Good Websites...\n");
 
   const databaseId = process.env.NOTION_GOOD_WEBSITES_DATABASE_ID!;
-  const dataSourceId = await getDataSourceId(databaseId);
-  const response = await notion.dataSources.query({
-    data_source_id: dataSourceId,
+  const response = await notion.databases.query({
+    database_id: databaseId,
   });
 
   console.log(`Found ${response.results.length} website items\n`);
@@ -346,9 +324,8 @@ async function optimizeStack() {
   console.log("\n📚 Processing Stack items...\n");
 
   const databaseId = process.env.NOTION_STACK_DATABASE_ID!;
-  const dataSourceId = await getDataSourceId(databaseId);
-  const response = await notion.dataSources.query({
-    data_source_id: dataSourceId,
+  const response = await notion.databases.query({
+    database_id: databaseId,
   });
 
   console.log(`Found ${response.results.length} stack items\n`);
