@@ -1,47 +1,46 @@
 {
   "props": {
-    "X": {
-      "id": "Rw%5Ev",
-      "name": "X",
+    "URL": {
+      "id": "%3AoU%60",
+      "name": "URL",
       "description": null,
       "type": "url",
       "url": {}
     },
+    "X": {
+      "id": "F%3CAA",
+      "name": "X",
+      "description": null,
+      "type": "rich_text",
+      "rich_text": {}
+    },
     "Tags": {
-      "id": "%5CMRu",
+      "id": "ijBe",
       "name": "Tags",
       "description": null,
       "type": "multi_select",
       "multi_select": {
         "options": [
           {
-            "id": "ac3437ae-9737-4b28-a87c-da8329a51bb4",
+            "id": "DdpJ",
+            "name": "Company",
+            "color": "blue",
+            "description": null
+          },
+          {
+            "id": "V>Gp",
             "name": "Personal site",
             "color": "yellow",
             "description": null
           },
           {
-            "id": "6bebfcab-903f-4f27-973d-af1f4f513207",
-            "name": "Company",
-            "color": "purple",
+            "id": "`LJl",
+            "name": "No",
+            "color": "gray",
             "description": null
           }
         ]
       }
-    },
-    "URL": {
-      "id": "nBQE",
-      "name": "URL",
-      "description": null,
-      "type": "url",
-      "url": {}
-    },
-    "Process favicon": {
-      "id": "v%5E%7B%3F",
-      "name": "Process favicon",
-      "description": null,
-      "type": "button",
-      "button": {}
     },
     "Name": {
       "id": "title",

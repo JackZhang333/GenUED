@@ -4,13 +4,11 @@
 import { z } from "zod";
 
 export const StackSchema = z.object({
-  Slug: z.string().optional(),
-  Description: z.string().optional(),
-  Image: z.string().optional(),
   URL: z.string().optional(),
-  Platforms: z.array(z.enum(["Windows", "Web", "Physical", "macOS", "iOS"])).optional(),
-  "Process icon": z.any().optional(),
-  Status: z.enum(["Inactive", "Active"]).optional(),
+  Image: z.string().optional(),
+  Description: z.string().optional(),
+  icon: z.array(z.any()).optional(),
+  Platforms: z.array(z.enum(["iOS", "Windows"])).optional(),
   Name: z.string().optional(),
 });
 
@@ -69,27 +67,20 @@ export const DesignDetailsEpisodesSchema = z.object({
 export type DesignDetailsEpisodes = z.infer<typeof DesignDetailsEpisodesSchema>;
 
 export const MusicSchema = z.object({
-  "Spotify ID": z.string().optional(),
-  Duration: z.number().optional(),
-  Journal: z.array(z.object({ id: z.string() })).optional(),
-  "Spotify URL": z.string().optional(),
-  "Dupe Key": z.string().optional(),
-  Artist: z.string().optional(),
-  Album: z.string().optional(),
-  Popularity: z.number().optional(),
   "Played At": z.string().optional(),
+  "Spotify URL": z.string().optional(),
+  Artist: z.string().optional(),
   "Album Art": z.string().optional(),
-  Explicit: z.boolean().optional(),
+  Album: z.string().optional(),
   Name: z.string().optional(),
 });
 
 export type Music = z.infer<typeof MusicSchema>;
 
 export const GoodWebsitesSchema = z.object({
-  X: z.string().optional(),
-  Tags: z.array(z.enum(["Personal site", "Company"])).optional(),
   URL: z.string().optional(),
-  "Process favicon": z.any().optional(),
+  X: z.string().optional(),
+  Tags: z.array(z.enum(["Company", "Personal site", "No"])).optional(),
   Name: z.string().optional(),
 });
 
