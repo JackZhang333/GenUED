@@ -59,7 +59,7 @@ async function downloadImage(url: string): Promise<Buffer | null> {
       const regionName = parts[2];
       const key = urlObj.pathname.slice(1); // remove leading /
 
-      return new Promise((resolve, reject) => {
+      return await new Promise((resolve, reject) => {
         cos.getObject(
           {
             Bucket: bucketName,
@@ -79,7 +79,11 @@ async function downloadImage(url: string): Promise<Buffer | null> {
       const arrayBuffer = await response.arrayBuffer();
       return Buffer.from(arrayBuffer);
     }
-  } catch (error) {
+  } catch (error: any) {
+    if (error.code === "NoSuchKey") {
+      console.log(`    ⚠️  Image not found in COS: ${url}`);
+      return null;
+    }
     console.error(`  ❌ Error downloading image: ${error}`);
     return null;
   }
@@ -312,7 +316,7 @@ async function optimizeSingleImage(
         },
       });
     } else {
-      // Update Image property
+      // Update Image property (URL type)
       await notion.pages.update({
         page_id: pageId,
         properties: {
@@ -338,164 +342,195 @@ async function optimizeSingleImage(
   }
 }
 
-/**
- * Optimize Good Websites icons
- */
-async function optimizeGoodWebsites() {
-  console.log("\n🌐 Processing Good Websites...\n");
+interface ImageTarget {
+  url: string | undefined;
+  type: "icon" | "image" | "icon_property";
+  label: string;
+}
 
-  const databaseId = process.env.NOTION_GOOD_WEBSITES_DATABASE_ID!;
+/**
+ * Check and extract URL from a Notion File property (files or external)
+ */
+function getFilePropertyUrl(property: any): string | undefined {
+  if (!property) return undefined;
+  // Handle 'files' array
+  if (property.files && property.files.length > 0) {
+    const file = property.files[0];
+    return file.file?.url || file.external?.url;
+  }
+  // Handle direct file/external object (if structured that way in some responses)
+  if (property.type === "files" && property.files?.[0]) {
+    const file = property.files[0];
+    return file.file?.url || file.external?.url;
+  }
+  // Handle if it's external directly (unlikely for a list property but safe to check)
+  if (property.type === "external") {
+    return property.external.url;
+  }
+  return undefined;
+}
+
+/**
+ * Check and extract URL from a Notion URL property
+ */
+function getUrlPropertyUrl(property: any): string | undefined {
+  if (!property) return undefined;
+  if (property.type === "url") {
+    return property.url;
+  }
+  // Fallback if property is just the object with 'url' key directly?
+  // Notion API usually returns { id:..., type: 'url', url: '...' }
+  return property.url;
+}
+
+/**
+ * Check and extract URL from Page Icon
+ */
+function getPageIconUrl(page: any): string | undefined {
+  if (!page.icon) return undefined;
+  return page.icon.type === "external"
+    ? page.icon.external.url
+    : page.icon.type === "file"
+      ? page.icon.file.url
+      : undefined;
+}
+
+/**
+ * Generic function to process images in a database
+ */
+async function processDatabaseImages(
+  databaseId: string,
+  dbName: string,
+  extractor: (page: any) => { name: string; targets: ImageTarget[] },
+) {
+  if (!databaseId) {
+    console.log(`⏭️  Database ID for ${dbName} not set, skipping\n`);
+    return;
+  }
+
+  console.log(`\nProcessing ${dbName}...\n`);
+
   const response = await notion.databases.query({
     database_id: databaseId,
   });
 
-  console.log(`Found ${response.results.length} website items\n`);
+  console.log(`Found ${response.results.length} items in ${dbName}\n`);
 
   for (const page of response.results) {
     if (!("properties" in page)) continue;
 
-    const pageWithProps = page as any;
-    const name = pageWithProps.properties.Name?.title[0]?.plain_text || "Untitled";
-    const icon =
-      pageWithProps.properties.icon?.type === "external"
-        ? pageWithProps.properties.icon.external.url
-        : pageWithProps.properties.icon?.type === "files"
-          ? pageWithProps.properties.icon.files[0].file.url
-          : undefined;
-
+    const { name, targets } = extractor(page);
     console.log(`Processing: ${name}`);
 
-    if (isHashedCosImage(icon)) {
-      console.log(`  ⏭️  Already optimized COS icon, skipping\n`);
-      stats.skipped++;
-      continue;
-    }
+    for (const target of targets) {
+      const { url, type, label } = target;
 
-    if (isCosImage(icon) || isNotionImage(icon)) {
-      await optimizeSingleImage(icon!, page.id, "icon");
-    } else {
-      console.log(`  ⏭️  Not a COS or Notion icon, skipping\n`);
-      stats.skipped++;
+      if (!url) {
+        continue;
+      }
+
+      if (isHashedCosImage(url)) {
+        console.log(`  ⏭️  Already optimized COS ${label}, skipping`);
+        stats.skipped++;
+      } else if (isCosImage(url) || isNotionImage(url)) {
+        console.log(`  🎨 Optimizing ${label}...`);
+        await optimizeSingleImage(url, page.id, type);
+      } else {
+        console.log(`  ⏭️  No COS or Notion ${label} found`);
+        stats.skipped++;
+      }
     }
     console.log();
   }
+}
+
+/**
+ * Standard extractor based on Music pattern
+ * - Checks Page Icon -> update "icon"
+ * - Checks Property "icon" (Files) -> update "icon_property"
+ * - Checks Property "Image" (URL) -> update "image"
+ */
+function getStandardImageTargets(page: any): ImageTarget[] {
+  const targets: ImageTarget[] = [];
+  const props = page.properties;
+
+  // 1. Icon Property (Files)
+  if (props.icon) {
+    const iconUrl = getFilePropertyUrl(props.icon);
+    if (iconUrl) {
+      targets.push({ url: iconUrl, type: "icon_property", label: "icon property" });
+    }
+  }
+
+  // 2. Page Icon
+  const pageIconUrl = getPageIconUrl(page);
+  if (pageIconUrl) {
+    targets.push({ url: pageIconUrl, type: "icon", label: "page icon" });
+  }
+
+  // 3. Image Property (URL) - Specific to Stack but safe to check generally if property exists
+  if (props.Image) {
+    const imageUrl = getUrlPropertyUrl(props.Image);
+    if (imageUrl) {
+      targets.push({ url: imageUrl, type: "image", label: "image property" });
+    }
+  }
+
+  return targets;
+}
+
+/**
+ * Optimize Good Websites icons
+ */
+async function optimizeGoodWebsites() {
+  await processDatabaseImages(
+    process.env.NOTION_GOOD_WEBSITES_DATABASE_ID!,
+    "Good Websites",
+    (page) => {
+      const pageWithProps = page as any;
+      const name = pageWithProps.properties.Name?.title[0]?.plain_text || "Untitled";
+      return {
+        name,
+        targets: getStandardImageTargets(pageWithProps),
+      };
+    },
+  );
 }
 
 /**
  * Optimize Stack items (both icons and images)
  */
 async function optimizeStack() {
-  console.log("\n📚 Processing Stack items...\n");
-
-  const databaseId = process.env.NOTION_STACK_DATABASE_ID!;
-  const response = await notion.databases.query({
-    database_id: databaseId,
-  });
-
-  console.log(`Found ${response.results.length} stack items\n`);
-
-  for (const page of response.results) {
-    if (!("properties" in page)) continue;
-
-    const pageWithProps = page as any;
-    const name = pageWithProps.properties.Name?.title[0]?.plain_text || "Untitled";
-    const icon =
-      pageWithProps.properties.icon?.type === "external"
-        ? pageWithProps.properties.icon.external.url
-        : pageWithProps.properties.icon?.type === "files"
-          ? pageWithProps.properties.icon.files[0].file.url
-          : undefined;
-    const image = pageWithProps.properties.Image?.url;
-
-    console.log(`Processing: ${name}`);
-    // console.log(pageWithProps);
-    // console.log(image);
-
-    // Optimize icon
-    if (isHashedCosImage(icon)) {
-      console.log(`  ⏭️  Already optimized COS icon, skipping`);
-      stats.skipped++;
-    } else if (isCosImage(icon) || isNotionImage(icon)) {
-      console.log(`  🎨 Optimizing icon...`);
-      await optimizeSingleImage(icon!, page.id, "icon");
-    } else {
-      console.log(`  ⏭️  No COS or Notion icon found`);
-      stats.skipped++;
-    }
-
-    // Optimize image
-    if (isHashedCosImage(image)) {
-      console.log(`  ⏭️  Already optimized COS image, skipping`);
-      stats.skipped++;
-    } else if (isCosImage(image) || isNotionImage(image)) {
-      console.log(`  📸 Optimizing image...`);
-      await optimizeSingleImage(image!, page.id, "image");
-    } else {
-      console.log(`  ⏭️  No COS or Notion image found`);
-      stats.skipped++;
-    }
-
-    console.log();
-  }
+  await processDatabaseImages(
+    process.env.NOTION_STACK_DATABASE_ID!,
+    "Stack items",
+    (page) => {
+      const pageWithProps = page as any;
+      const name = pageWithProps.properties.Name?.title[0]?.plain_text || "Untitled";
+      return {
+        name,
+        targets: getStandardImageTargets(pageWithProps),
+      };
+    },
+  );
 }
 
 /**
  * Optimize Music (Listening History) icons
  */
 async function optimizeMusic() {
-  console.log("\n🎵 Processing Music items...\n");
-
-  const databaseId = process.env.NOTION_MUSIC_DATABASE_ID!;
-  if (!databaseId) {
-    console.log("⏭️  NOTION_MUSIC_DATABASE_ID not set, skipping\n");
-    return;
-  }
-
-  const response = await notion.databases.query({
-    database_id: databaseId,
-  });
-
-  console.log(`Found ${response.results.length} music items\n`);
-
-  for (const page of response.results) {
-    if (!("properties" in page)) continue;
-
-    const pageWithProps = page as any;
-    const name = pageWithProps.properties.Name?.title[0]?.plain_text || "Untitled";
-
-    // 1. Check "icon" property (type: files)
-    const iconProperty = pageWithProps.properties.icon?.files?.[0];
-    const iconUrl = iconProperty?.file?.url || iconProperty?.external?.url;
-
-    // 2. Check page icon
-    const pageIcon =
-      pageWithProps.icon?.type === "external"
-        ? pageWithProps.icon.external.url
-        : pageWithProps.icon?.type === "file"
-          ? pageWithProps.icon.file.url
-          : undefined;
-
-    console.log(`Processing: ${name}`);
-
-    if (isHashedCosImage(iconUrl)) {
-      console.log(`  ⏭️  Already optimized COS icon property, skipping`);
-      stats.skipped++;
-    } else if (isCosImage(iconUrl) || isNotionImage(iconUrl)) {
-      console.log(`  🎨 Optimizing icon property...`);
-      await optimizeSingleImage(iconUrl!, page.id, "icon_property");
-    } else if (isHashedCosImage(pageIcon)) {
-      console.log(`  ⏭️  Already optimized COS page icon, skipping`);
-      stats.skipped++;
-    } else if (isCosImage(pageIcon) || isNotionImage(pageIcon)) {
-      console.log(`  🎨 Optimizing page icon...`);
-      await optimizeSingleImage(pageIcon!, page.id, "icon");
-    } else {
-      console.log(`  ⏭️  No COS or Notion icon found`);
-      stats.skipped++;
-    }
-
-    console.log();
-  }
+  await processDatabaseImages(
+    process.env.NOTION_MUSIC_DATABASE_ID!,
+    "Music items",
+    (page) => {
+      const pageWithProps = page as any;
+      const name = pageWithProps.properties.Name?.title[0]?.plain_text || "Untitled";
+      return {
+        name,
+        targets: getStandardImageTargets(pageWithProps),
+      };
+    },
+  );
 }
 
 /**

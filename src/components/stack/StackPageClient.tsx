@@ -99,6 +99,7 @@ export function StackPageClient({ initialData }: StackPageClientProps) {
 }
 
 function StackItem({ item }: { item: StackItem }) {
+  console.log("rended item:", item);
   const [imageError, setImageError] = useState(false);
 
   // Determine the icon source: prefer icon over image

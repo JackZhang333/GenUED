@@ -100,7 +100,7 @@ export function GoodWebsitesPageClient({ initialData }: GoodWebsitesPageClientPr
 
 function GoodWebsiteItemComponent({ item }: { item: GoodWebsiteItem }) {
   const [iconError, setIconError] = useState(false);
-
+  console.log("rended item:", item);
   return (
     <div className="border-secondary hover:bg-secondary group relative border-b md:dark:hover:bg-white/5">
       {item.url && <Link target="_blank" href={item.url} className="absolute inset-0" />}
