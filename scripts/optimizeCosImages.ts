@@ -1,7 +1,6 @@
 #!/usr/bin/env bun
-import { DeleteObjectCommand, GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import COS from "cos-nodejs-sdk-v5";
 import { Client } from "@notionhq/client";
-import type { DatabaseObjectResponse } from "@notionhq/client/build/src/api-endpoints";
 import crypto from "crypto";
 import sharp from "sharp";
 
@@ -10,18 +9,18 @@ const notion = new Client({
   auth: process.env.NOTION_TOKEN,
 });
 
-// Initialize R2 S3 client
-const s3Client = new S3Client({
-  region: "auto",
-  endpoint: process.env.R2_S3_API_URL,
-  credentials: {
-    accessKeyId: process.env.R2_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
-  },
+// Initialize Tencent COS client
+const cos = new COS({
+  SecretId: process.env.COS_SECRET_ID!,
+  SecretKey: process.env.COS_SECRET_KEY!,
 });
 
-const BUCKET_NAME = "brios";
-const R2_PUBLIC_URL = process.env.R2_PUBLIC_URL!;
+const BUCKET = process.env.COS_BUCKET!; // Format: examplebucket-1250000000
+const REGION = process.env.COS_REGION!; // Format: ap-guangzhou
+let COS_PUBLIC_URL = process.env.COS_PUBLIC_URL!; // e.g., https://example-1250000000.cos.ap-guangzhou.myqcloud.com
+if (COS_PUBLIC_URL && !COS_PUBLIC_URL.startsWith("http")) {
+  COS_PUBLIC_URL = `https://${COS_PUBLIC_URL}`;
+}
 const MAX_SIZE = 80; // Maximum width or height in pixels
 
 interface OptimizationStats {
@@ -41,29 +40,47 @@ const stats: OptimizationStats = {
 };
 
 /**
- * Download image from R2
+ * Download file from COS or URL
  */
-async function downloadFromR2(r2Url: string): Promise<Buffer | null> {
+async function downloadImage(url: string): Promise<Buffer | null> {
   try {
-    // Extract the key from the R2 URL
-    const key = r2Url.replace(`${R2_PUBLIC_URL}/`, "");
-
-    const command = new GetObjectCommand({
-      Bucket: BUCKET_NAME,
-      Key: key,
-    });
-
-    const response = await s3Client.send(command);
-    if (!response.Body) return null;
-
-    // Convert stream to buffer
-    const chunks: Uint8Array[] = [];
-    for await (const chunk of response.Body as any) {
-      chunks.push(chunk);
+    let finalUrl = url;
+    if (!url.startsWith("http")) {
+      finalUrl = `https://${url}`;
     }
-    return Buffer.concat(chunks);
+
+    if (finalUrl.includes(".myqcloud.com")) {
+      // It's a COS URL, use COS SDK to download (handles auth if needed)
+      // Extract key, bucket, and region from URL
+      const urlObj = new URL(finalUrl);
+      const hostname = urlObj.hostname; // e.g., bucket-1250000000.cos.ap-guangzhou.myqcloud.com
+      const parts = hostname.split(".");
+      const bucketName = parts[0];
+      const regionName = parts[2];
+      const key = urlObj.pathname.slice(1); // remove leading /
+
+      return new Promise((resolve, reject) => {
+        cos.getObject(
+          {
+            Bucket: bucketName,
+            Region: regionName,
+            Key: key,
+          },
+          (err, data) => {
+            if (err) return reject(err);
+            resolve(data.Body as Buffer);
+          },
+        );
+      });
+    } else {
+      // It's a remote URL (e.g., Notion S3)
+      const response = await fetch(finalUrl);
+      if (!response.ok) return null;
+      const arrayBuffer = await response.arrayBuffer();
+      return Buffer.from(arrayBuffer);
+    }
   } catch (error) {
-    console.error(`  ❌ Error downloading from R2: ${error}`);
+    console.error(`  ❌ Error downloading image: ${error}`);
     return null;
   }
 }
@@ -132,9 +149,9 @@ async function optimizeImage(buffer: Buffer): Promise<{ buffer: Buffer; format: 
 }
 
 /**
- * Upload optimized image to R2
+ * Upload optimized image to COS
  */
-async function uploadToR2(buffer: Buffer, format: string): Promise<string | null> {
+async function uploadToCOS(buffer: Buffer, format: string): Promise<string | null> {
   try {
     const hash = crypto.createHash("sha256").update(buffer).digest("hex");
     const extension = format === "svg" ? ".svg" : `.${format}`;
@@ -142,75 +159,100 @@ async function uploadToR2(buffer: Buffer, format: string): Promise<string | null
 
     const contentType = `image/${format === "svg" ? "svg+xml" : format}`;
 
-    await s3Client
-      .send(
-        new DeleteObjectCommand({
-          Bucket: BUCKET_NAME,
+    return new Promise((resolve, reject) => {
+      cos.putObject(
+        {
+          Bucket: BUCKET,
+          Region: REGION,
           Key: filename,
-        }),
-      )
-      .catch(() => {
-        // Ignore errors if file doesn't exist
-      });
-
-    // Use PutObjectCommand
-    const { PutObjectCommand } = await import("@aws-sdk/client-s3");
-    await s3Client.send(
-      new PutObjectCommand({
-        Bucket: BUCKET_NAME,
-        Key: filename,
-        Body: buffer,
-        ContentType: contentType,
-        CacheControl: "public, max-age=31536000, immutable",
-      }),
-    );
-
-    return `${R2_PUBLIC_URL}/${filename}`;
+          Body: buffer,
+          ContentType: contentType,
+          ACL: "public-read",
+          Headers: {
+            "Cache-Control": "public, max-age=31536000, immutable",
+          },
+        },
+        (err, data) => {
+          if (err) return reject(err);
+          resolve(`${COS_PUBLIC_URL}/${filename}`);
+        },
+      );
+    });
   } catch (error) {
-    console.error(`  ❌ Error uploading to R2: ${error}`);
+    console.error(`  ❌ Error uploading to COS: ${error}`);
     return null;
   }
 }
 
 /**
- * Delete old image from R2
+ * Delete old image from COS
  */
-async function deleteFromR2(r2Url: string): Promise<void> {
+async function deleteFromCOS(url: string): Promise<void> {
   try {
-    const key = r2Url.replace(`${R2_PUBLIC_URL}/`, "");
+    if (!url.startsWith(COS_PUBLIC_URL)) return;
 
-    await s3Client.send(
-      new DeleteObjectCommand({
-        Bucket: BUCKET_NAME,
-        Key: key,
-      }),
-    );
+    const key = url.replace(`${COS_PUBLIC_URL}/`, "");
 
-    console.log(`    🗑️  Deleted old image from R2`);
+    return new Promise((resolve, reject) => {
+      cos.deleteObject(
+        {
+          Bucket: BUCKET,
+          Region: REGION,
+          Key: key,
+        },
+        (err, data) => {
+          if (err) return reject(err);
+          console.log(`    🗑️  Deleted old image from COS`);
+          resolve();
+        },
+      );
+    });
   } catch (error) {
-    console.error(`  ⚠️  Error deleting old image from R2: ${error}`);
+    console.error(`  ⚠️  Error deleting old image from COS: ${error}`);
   }
 }
 
 /**
- * Check if URL is an R2 URL that needs optimization
+ * Check if URL is a COS URL
  */
-function isR2Image(url: string | undefined): boolean {
-  return !!url && url.startsWith(R2_PUBLIC_URL);
+function isCosImage(url: string | undefined): boolean {
+  if (!url) return false;
+  return url.startsWith(COS_PUBLIC_URL) || url.includes(".myqcloud.com");
+}
+
+/**
+ * Check if URL is an already optimized COS image (has hash and in our bucket)
+ */
+function isHashedCosImage(url: string | undefined): boolean {
+  if (!url) return false;
+  // Check if it's in our bucket and has the hashed path
+  return url.startsWith(`${COS_PUBLIC_URL}/notion-images/`) && /[a-f0-7]{64}/.test(url);
+}
+
+/**
+ * Check if URL is a Notion S3 or proxy URL that needs mirroring
+ */
+function isNotionImage(url: string | undefined): boolean {
+  if (!url) return false;
+  return (
+    url.includes("amazonaws.com") ||
+    url.includes("notion-static.com") ||
+    url.includes("www.notion.so/image")
+  );
 }
 
 /**
  * Optimize a single image
  */
-async function optimizeR2Image(
+async function optimizeSingleImage(
   imageUrl: string,
   pageId: string,
   updateType: "icon" | "image" | "icon_property",
 ): Promise<boolean> {
   try {
-    // Download from R2
-    console.log(`  📥 Downloading from R2...`);
-    const originalBuffer = await downloadFromR2(imageUrl);
+    // Download image
+    console.log(`  📥 Downloading image...`);
+    const originalBuffer = await downloadImage(imageUrl);
     if (!originalBuffer) {
       console.log(`  ⏭️  Failed to download, skipping`);
       stats.skipped++;
@@ -228,7 +270,7 @@ async function optimizeR2Image(
 
     // Upload optimized version
     console.log(`  📤 Uploading optimized image...`);
-    const newUrl = await uploadToR2(optimized.buffer, optimized.format);
+    const newUrl = await uploadToCOS(optimized.buffer, optimized.format);
     if (!newUrl) {
       console.log(`  ⏭️  Failed to upload, skipping`);
       stats.skipped++;
@@ -281,9 +323,11 @@ async function optimizeR2Image(
       });
     }
 
-    // Delete old image
-    console.log(`  🗑️  Deleting old image...`);
-    await deleteFromR2(imageUrl);
+    // Delete old image if it was in our COS
+    if (isCosImage(imageUrl)) {
+      console.log(`  🗑️  Deleting old image from COS...`);
+      await deleteFromCOS(imageUrl);
+    }
 
     stats.processed++;
     return true;
@@ -313,21 +357,26 @@ async function optimizeGoodWebsites() {
     const pageWithProps = page as any;
     const name = pageWithProps.properties.Name?.title[0]?.plain_text || "Untitled";
     const icon =
-      pageWithProps.icon?.type === "external"
-        ? pageWithProps.icon.external.url
-        : pageWithProps.icon?.type === "file"
-          ? pageWithProps.icon.file.url
+      pageWithProps.properties.icon?.type === "external"
+        ? pageWithProps.properties.icon.external.url
+        : pageWithProps.properties.icon?.type === "files"
+          ? pageWithProps.properties.icon.files[0].file.url
           : undefined;
 
     console.log(`Processing: ${name}`);
 
-    if (!isR2Image(icon)) {
-      console.log(`  ⏭️  No R2 icon found, skipping\n`);
+    if (isHashedCosImage(icon)) {
+      console.log(`  ⏭️  Already optimized COS icon, skipping\n`);
       stats.skipped++;
       continue;
     }
 
-    await optimizeR2Image(icon!, page.id, "icon");
+    if (isCosImage(icon) || isNotionImage(icon)) {
+      await optimizeSingleImage(icon!, page.id, "icon");
+    } else {
+      console.log(`  ⏭️  Not a COS or Notion icon, skipping\n`);
+      stats.skipped++;
+    }
     console.log();
   }
 }
@@ -351,30 +400,38 @@ async function optimizeStack() {
     const pageWithProps = page as any;
     const name = pageWithProps.properties.Name?.title[0]?.plain_text || "Untitled";
     const icon =
-      pageWithProps.icon?.type === "external"
-        ? pageWithProps.icon.external.url
-        : pageWithProps.icon?.type === "file"
-          ? pageWithProps.icon.file.url
+      pageWithProps.properties.icon?.type === "external"
+        ? pageWithProps.properties.icon.external.url
+        : pageWithProps.properties.icon?.type === "files"
+          ? pageWithProps.properties.icon.files[0].file.url
           : undefined;
     const image = pageWithProps.properties.Image?.url;
 
     console.log(`Processing: ${name}`);
+    // console.log(pageWithProps);
+    // console.log(image);
 
     // Optimize icon
-    if (isR2Image(icon)) {
+    if (isHashedCosImage(icon)) {
+      console.log(`  ⏭️  Already optimized COS icon, skipping`);
+      stats.skipped++;
+    } else if (isCosImage(icon) || isNotionImage(icon)) {
       console.log(`  🎨 Optimizing icon...`);
-      await optimizeR2Image(icon!, page.id, "icon");
+      await optimizeSingleImage(icon!, page.id, "icon");
     } else {
-      console.log(`  ⏭️  No R2 icon found`);
+      console.log(`  ⏭️  No COS or Notion icon found`);
       stats.skipped++;
     }
 
     // Optimize image
-    if (isR2Image(image)) {
+    if (isHashedCosImage(image)) {
+      console.log(`  ⏭️  Already optimized COS image, skipping`);
+      stats.skipped++;
+    } else if (isCosImage(image) || isNotionImage(image)) {
       console.log(`  📸 Optimizing image...`);
-      await optimizeR2Image(image!, page.id, "image");
+      await optimizeSingleImage(image!, page.id, "image");
     } else {
-      console.log(`  ⏭️  No R2 image found`);
+      console.log(`  ⏭️  No COS or Notion image found`);
       stats.skipped++;
     }
 
@@ -420,14 +477,20 @@ async function optimizeMusic() {
 
     console.log(`Processing: ${name}`);
 
-    if (isR2Image(iconUrl)) {
+    if (isHashedCosImage(iconUrl)) {
+      console.log(`  ⏭️  Already optimized COS icon property, skipping`);
+      stats.skipped++;
+    } else if (isCosImage(iconUrl) || isNotionImage(iconUrl)) {
       console.log(`  🎨 Optimizing icon property...`);
-      await optimizeR2Image(iconUrl!, page.id, "icon_property");
-    } else if (isR2Image(pageIcon)) {
+      await optimizeSingleImage(iconUrl!, page.id, "icon_property");
+    } else if (isHashedCosImage(pageIcon)) {
+      console.log(`  ⏭️  Already optimized COS page icon, skipping`);
+      stats.skipped++;
+    } else if (isCosImage(pageIcon) || isNotionImage(pageIcon)) {
       console.log(`  🎨 Optimizing page icon...`);
-      await optimizeR2Image(pageIcon!, page.id, "icon");
+      await optimizeSingleImage(pageIcon!, page.id, "icon");
     } else {
-      console.log(`  ⏭️  No R2 icon found`);
+      console.log(`  ⏭️  No COS or Notion icon found`);
       stats.skipped++;
     }
 
@@ -439,7 +502,12 @@ async function optimizeMusic() {
  * Main function
  */
 async function main() {
-  console.log("🚀 Starting R2 image optimization...\n");
+  console.log("🚀 Starting COS image optimization...\n");
+
+  if (!BUCKET || !REGION || !process.env.COS_SECRET_ID || !process.env.COS_SECRET_KEY) {
+    console.error("❌ Missing required environment variables: COS_BUCKET, COS_REGION, COS_SECRET_ID, COS_SECRET_KEY");
+    process.exit(1);
+  }
 
   await optimizeGoodWebsites();
   await optimizeStack();

@@ -21,12 +21,12 @@
       "type": "rich_text",
       "rich_text": {}
     },
-    "Album Art": {
+    "icon": {
       "id": "c%3BOo",
-      "name": "Album Art",
+      "name": "icon",
       "description": null,
-      "type": "url",
-      "url": {}
+      "type": "files",
+      "files": {}
     },
     "Album": {
       "id": "xK%5D%40",

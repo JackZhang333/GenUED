@@ -50,8 +50,9 @@ export default function Home() {
               </h1>
 
               <p className="text-secondary text-2xl font-semibold text-pretty">
-                I’m a software designer living in Hangzhou, currently making AI products at{" "}
-                GenUED.
+                I’m a product designer based in Hangzhou, working on AI-powered products.
+My current focus is Generative User Interface design, exploring how AI reshapes product experiences and design methodologies.
+Here, I share insights and reflections on product design, AI applications, and hands-on practice.
               </p>
             </Section>
 
@@ -147,7 +148,7 @@ const projects = [
   {
     name: "Writing",
     href: "/writing",
-    description: "Notes on software and other things",
+    description: "Notes on design and other things",
     external: false,
   },
   // {

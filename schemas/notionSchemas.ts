@@ -70,7 +70,7 @@ export const MusicSchema = z.object({
   "Played At": z.string().optional(),
   "Spotify URL": z.string().optional(),
   Artist: z.string().optional(),
-  "Album Art": z.string().optional(),
+  icon: z.array(z.any()).optional(),
   Album: z.string().optional(),
   Name: z.string().optional(),
 });

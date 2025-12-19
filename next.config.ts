@@ -16,14 +16,14 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "i.scdn.co",
       },
-      // Notion CDN domains for uploaded files
+      // Tencent COS domains
       {
         protocol: "https",
-        hostname: "prod-files-secure.s3.us-west-2.amazonaws.com",
+        hostname: "**.myqcloud.com",
       },
       {
-        protocol: "https",
-        hostname: "s3.us-west-2.amazonaws.com",
+        protocol: "http",
+        hostname: "**.myqcloud.com",
       },
     ],
   },

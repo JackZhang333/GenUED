@@ -103,14 +103,16 @@ export async function getStackDatabaseItems(): Promise<NotionStackItem[]> {
         const pageWithProps = page as PageObjectResponse;
 
         // Extract icon from page object
-        const icon =
-          pageWithProps.icon?.type === "file"
-            ? pageWithProps.icon.file.url
-            : pageWithProps.icon?.type === "external"
-              ? pageWithProps.icon.external.url
-              : pageWithProps.icon?.type === "emoji"
-                ? pageWithProps.icon.emoji
-                : undefined;
+        let icon: string | undefined = undefined;
+        if (pageWithProps.icon) {
+          if (pageWithProps.icon.type === "external") {
+            icon = pageWithProps.icon.external.url;
+          } else if (pageWithProps.icon.type === "emoji") {
+            icon = pageWithProps.icon.emoji;
+          } else if (pageWithProps.icon.type === ("file" as any) || pageWithProps.icon.type === ("files" as any)) {
+            icon = (pageWithProps.icon as any).file?.url || (pageWithProps.icon as any).files?.[0]?.file?.url;
+          }
+        }
 
         const properties = pageWithProps.properties as {
           Name?: { title: { plain_text: string }[] };
@@ -167,12 +169,14 @@ export async function getGoodWebsitesDatabaseItems(): Promise<GoodWebsiteItem[]>
         const pageWithProps = page as PageObjectResponse;
 
         // Extract icon from page object
-        const icon =
-          pageWithProps.icon?.type === "file"
-            ? pageWithProps.icon.file.url
-            : pageWithProps.icon?.type === "external"
-              ? pageWithProps.icon.external.url
-              : undefined;
+        let icon: string | undefined = undefined;
+        if (pageWithProps.icon) {
+          if (pageWithProps.icon.type === "external") {
+            icon = pageWithProps.icon.external.url;
+          } else if (pageWithProps.icon.type === ("file" as any) || pageWithProps.icon.type === ("files" as any)) {
+            icon = (pageWithProps.icon as any).file?.url || (pageWithProps.icon as any).files?.[0]?.file?.url;
+          }
+        }
 
         const properties = pageWithProps.properties as {
           Name?: { title: { plain_text: string }[] };
@@ -463,20 +467,36 @@ export async function getListeningHistoryDatabaseItems(
         if (!hasProperties(page)) return null;
 
         const pageWithIcon = page as PageObjectResponse;
-        const icon =
-          pageWithIcon.icon?.type === "file"
-            ? pageWithIcon.icon.file.url
-            : pageWithIcon.icon?.type === "external"
-              ? pageWithIcon.icon.external.url
-              : undefined;
-
         const properties = pageWithIcon.properties as {
           Name?: { title: { plain_text: string }[] };
           Artist?: { rich_text: { plain_text: string }[] };
           Album?: { rich_text: { plain_text: string }[] };
           "Spotify URL"?: { url: string };
           "Played At"?: { date: { start: string } | null };
+          icon?: { files: { file?: { url: string }; external?: { url: string } }[] };
         };
+
+        // Extract icon from property if available, otherwise from page object
+        let icon: string | undefined = undefined;
+
+        // 1. Check "icon" property (type: files)
+        const iconProperty = properties.icon?.files?.[0];
+        if (iconProperty) {
+          icon = iconProperty.file?.url || iconProperty.external?.url;
+        }
+
+        // 2. Fallback to page-level icon
+        if (!icon) {
+          if (pageWithIcon.icon) {
+            if (pageWithIcon.icon.type === "external") {
+              icon = pageWithIcon.icon.external.url;
+            } else if (pageWithIcon.icon.type === "emoji") {
+              icon = pageWithIcon.icon.emoji;
+            } else if (pageWithIcon.icon.type === ("file" as any) || pageWithIcon.icon.type === ("files" as any)) {
+              icon = (pageWithIcon.icon as any).file?.url || (pageWithIcon.icon as any).files?.[0]?.file?.url;
+            }
+          }
+        }
 
         return {
           id: pageWithIcon.id,
