@@ -102,18 +102,6 @@ export async function getStackDatabaseItems(): Promise<NotionStackItem[]> {
 
         const pageWithProps = page as PageObjectResponse;
 
-        // Extract icon from page object
-        let icon: string | undefined = undefined;
-        if (pageWithProps.icon) {
-          if (pageWithProps.icon.type === "external") {
-            icon = pageWithProps.icon.external.url;
-          } else if (pageWithProps.icon.type === "emoji") {
-            icon = pageWithProps.icon.emoji;
-          } else if (pageWithProps.icon.type === ("file" as any) || pageWithProps.icon.type === ("files" as any)) {
-            icon = (pageWithProps.icon as any).file?.url || (pageWithProps.icon as any).files?.[0]?.file?.url;
-          }
-        }
-
         const properties = pageWithProps.properties as {
           Name?: { title: { plain_text: string }[] };
           Slug?: { rich_text: { plain_text: string }[] };
@@ -122,7 +110,35 @@ export async function getStackDatabaseItems(): Promise<NotionStackItem[]> {
           URL?: { url: string };
           Platforms?: { multi_select: { name: string }[] };
           Status?: { select: { name: string } | null };
+          icon?: { files: { file?: { url: string }; external?: { url: string } }[] };
         };
+
+        // Extract icon from property if available, otherwise from page object
+        let icon: string | undefined = undefined;
+
+        // 1. Check "icon" property (type: files)
+        const iconProperty = properties.icon?.files?.[0];
+        if (iconProperty) {
+          icon = iconProperty.file?.url || iconProperty.external?.url;
+        }
+
+        // 2. Fallback to page-level icon
+        if (!icon) {
+          if (pageWithProps.icon) {
+            if (pageWithProps.icon.type === "external") {
+              icon = pageWithProps.icon.external.url;
+            } else if (pageWithProps.icon.type === "emoji") {
+              icon = pageWithProps.icon.emoji;
+            } else if (
+              pageWithProps.icon.type === ("file" as any) ||
+              pageWithProps.icon.type === ("files" as any)
+            ) {
+              icon =
+                (pageWithProps.icon as any).file?.url ||
+                (pageWithProps.icon as any).files?.[0]?.file?.url;
+            }
+          }
+        }
 
         return {
           id: pageWithProps.id,
@@ -168,22 +184,40 @@ export async function getGoodWebsitesDatabaseItems(): Promise<GoodWebsiteItem[]>
 
         const pageWithProps = page as PageObjectResponse;
 
-        // Extract icon from page object
-        let icon: string | undefined = undefined;
-        if (pageWithProps.icon) {
-          if (pageWithProps.icon.type === "external") {
-            icon = pageWithProps.icon.external.url;
-          } else if (pageWithProps.icon.type === ("file" as any) || pageWithProps.icon.type === ("files" as any)) {
-            icon = (pageWithProps.icon as any).file?.url || (pageWithProps.icon as any).files?.[0]?.file?.url;
-          }
-        }
-
         const properties = pageWithProps.properties as {
           Name?: { title: { plain_text: string }[] };
           URL?: { url: string };
           X?: { url: string };
           Tags?: { multi_select: { name: string }[] };
+          icon?: { files: { file?: { url: string }; external?: { url: string } }[] };
         };
+
+        // Extract icon from property if available, otherwise from page object
+        let icon: string | undefined = undefined;
+
+        // 1. Check "icon" property (type: files)
+        const iconProperty = properties.icon?.files?.[0];
+        if (iconProperty) {
+          icon = iconProperty.file?.url || iconProperty.external?.url;
+        }
+
+        // 2. Fallback to page-level icon
+        if (!icon) {
+          if (pageWithProps.icon) {
+            if (pageWithProps.icon.type === "external") {
+              icon = pageWithProps.icon.external.url;
+            } else if (pageWithProps.icon.type === "emoji") {
+              icon = pageWithProps.icon.emoji;
+            } else if (
+              pageWithProps.icon.type === ("file" as any) ||
+              pageWithProps.icon.type === ("files" as any)
+            ) {
+              icon =
+                (pageWithProps.icon as any).file?.url ||
+                (pageWithProps.icon as any).files?.[0]?.file?.url;
+            }
+          }
+        }
 
         return {
           id: pageWithProps.id,

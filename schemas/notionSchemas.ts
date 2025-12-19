@@ -79,6 +79,7 @@ export type Music = z.infer<typeof MusicSchema>;
 
 export const GoodWebsitesSchema = z.object({
   URL: z.string().optional(),
+  icon: z.array(z.any()).optional(),
   X: z.string().optional(),
   Tags: z.array(z.enum(["Company", "Personal site", "No"])).optional(),
   Name: z.string().optional(),
