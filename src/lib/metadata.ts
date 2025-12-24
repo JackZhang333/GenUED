@@ -4,10 +4,10 @@ import type { Metadata } from "next";
  * Site-wide metadata constants
  */
 export const SITE_CONFIG = {
-  name: "Johnny Chou",
-  title: "Johnny Chou",
+  name: "GenUED",
+  title: "Generative User Experience Design",
   description:
-    "Designer and software engineer living in Hangzhou, Zhejiang, China. Currently working at GenuedOS, focus on genenative UI/UX design. ",
+    "The future of AI interaction. Explore how GenUI dynamically creates real-time, hyper-personalized interfaces to move beyond the chatbox trap ",
   url: "https://jackchou.com",
   author: {
     name: "Johnny Chou",
