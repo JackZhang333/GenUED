@@ -508,6 +508,7 @@ export async function getListeningHistoryDatabaseItems(
           "Spotify URL"?: { url: string };
           "Played At"?: { date: { start: string } | null };
           icon?: { files: { file?: { url: string }; external?: { url: string } }[] };
+          Music?: { files: { file?: { url: string }; external?: { url: string } }[] };
         };
 
         // Extract icon from property if available, otherwise from page object
@@ -532,6 +533,13 @@ export async function getListeningHistoryDatabaseItems(
           }
         }
 
+        // Extract music URL from "Music" property
+        let audioUrl: string | undefined = undefined;
+        const musicProperty = properties.Music?.files?.[0];
+        if (musicProperty) {
+          audioUrl = musicProperty.file?.url || musicProperty.external?.url;
+        }
+
         return {
           id: pageWithIcon.id,
           name: properties.Name?.title[0]?.plain_text || "Untitled",
@@ -540,6 +548,7 @@ export async function getListeningHistoryDatabaseItems(
           url: properties["Spotify URL"]?.url || undefined,
           playedAt: properties["Played At"]?.date?.start || pageWithIcon.created_time,
           image: icon,
+          audioUrl,
         } as NotionListeningHistoryItem;
       })
       .filter((item): item is NotionListeningHistoryItem => item !== null);

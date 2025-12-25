@@ -4,6 +4,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import clsx from "clsx";
 
 import { ListeningHistoryPage, useListeningHistoryPaginated } from "@/hooks/useListeningHistory";
 
@@ -40,49 +41,166 @@ interface ListeningHistoryRowProps {
     album: string;
     image?: string;
     url?: string;
+    audioUrl?: string;
     playedAt: string;
   };
 }
 
+const isAudioUrl = (url?: string) => {
+  if (!url) return false;
+  const path = url.split("?")[0].toLowerCase();
+  return (
+    path.endsWith(".mp3") ||
+    path.endsWith(".wav") ||
+    path.endsWith(".m4a") ||
+    path.endsWith(".aac") ||
+    path.endsWith(".ogg") ||
+    path.endsWith(".flac")
+  );
+};
+
 function ListeningHistoryRow({ item }: ListeningHistoryRowProps) {
   const [imageError, setImageError] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
+  const togglePlay = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const audioUrl = item.audioUrl || item.url;
+    if (!audioUrl || !isAudioUrl(audioUrl)) return;
+
+    if (!audioRef.current) {
+      audioRef.current = new Audio(audioUrl);
+      audioRef.current.onended = () => setIsPlaying(false);
+    }
+
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play();
+    }
+    setIsPlaying(!isPlaying);
+  };
+
+  const showPlayButton = isAudioUrl(item.audioUrl) || isAudioUrl(item.url);
 
   return (
-    <div className="flex h-full gap-3 px-4 py-3 md:items-center md:gap-4 md:py-1">
-      {item.url && <Link target="_blank" href={item.url} className="absolute inset-0" />}
+    <div className="group flex h-full gap-3 px-4 py-3 md:items-center md:gap-4 md:py-1">
+      {item.url && (
+        showPlayButton ? (
+          <button
+            onClick={togglePlay}
+            className="absolute inset-0 rounded-lg z-0 cursor-pointer bg-transparent outline-none"
+            aria-label={`Play ${item.name}`}
+          />
+        ) : (
+          <Link target="_blank" href={item.url} className="absolute inset-0 z-0" />
+        )
+      )}
 
       {/* Image - shown on mobile, hidden on desktop */}
-      {item.image && !imageError ? (
-        <Image
-          width={48}
-          height={48}
-          src={item.image}
-          alt=""
-          className="size-12 flex-none rounded-lg object-cover ring-[0.5px] ring-black/10 md:hidden dark:ring-white/10"
-          onError={() => setImageError(true)}
-        />
-      ) : (
-        <div className="bg-tertiary size-12 flex-none rounded-lg md:hidden" />
-      )}
+      <div className="relative size-12 flex-none md:hidden">
+        {item.image && !imageError ? (
+          <Image
+            width={48}
+            height={48}
+            src={item.image}
+            alt=""
+            className="size-12 rounded-lg object-cover ring-[0.5px] ring-black/10 dark:ring-white/10"
+            onError={() => setImageError(true)}
+          />
+        ) : (
+          <div className="bg-tertiary size-12 rounded-lg" />
+        )}
+        {showPlayButton && (
+          <div
+            className={clsx(
+              "absolute inset-0 flex items-center justify-center bg-black/30 text-white rounded-lg transition-opacity",
+              isPlaying ? "opacity-100" : "opacity-100 md:opacity-0 md:group-hover:opacity-100"
+            )}
+          >
+            {isPlaying ? (
+              <svg className="size-6 fill-current animate-pulse" viewBox="0 0 24 24">
+                <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
+              </svg>
+            ) : (
+              <svg className="size-6 fill-current" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Song name + Artist (mobile), Song column (desktop) */}
       <div className="min-w-0 flex-1 md:flex md:min-w-[200px] md:items-center md:gap-3">
         {/* Image - hidden on mobile, shown on desktop */}
-        {item.image && !imageError ? (
-          <Image
-            width={32}
-            height={32}
-            src={item.image}
-            alt=""
-            className="hidden size-8 flex-none rounded-md object-cover ring-[0.5px] ring-black/5 md:block dark:ring-white/5"
-            onError={() => setImageError(true)}
-          />
-        ) : (
-          <div className="bg-tertiary hidden size-8 flex-none rounded-md md:block" />
-        )}
-        <div className="min-w-0 flex-1">
-          <span className="text-primary block truncate font-medium">{item.name}</span>
-          <div className="text-tertiary truncate md:hidden">{item.artist}</div>
+        <div className="relative hidden size-8 flex-none md:block">
+          {item.image && !imageError ? (
+            <Image
+              width={32}
+              height={32}
+              src={item.image}
+              alt=""
+              className="size-8 rounded-md object-cover ring-[0.5px] ring-black/5 dark:ring-white/5"
+              onError={() => setImageError(true)}
+            />
+          ) : (
+            <div className="bg-tertiary size-8 rounded-md" />
+          )}
+          {showPlayButton && (
+            <div
+              className={clsx(
+                "absolute inset-0 flex items-center justify-center bg-black/30 text-white rounded-md transition-opacity",
+                isPlaying ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+              )}
+            >
+              {isPlaying ? (
+                <svg className="size-4 fill-current" viewBox="0 0 24 24">
+                  <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
+                </svg>
+              ) : (
+                <svg className="size-4 fill-current" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              )}
+            </div>
+          )}
+        </div>
+        <div className="min-w-0 flex-1 flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <span className="text-primary block truncate font-medium">{item.name}</span>
+            <div className="text-tertiary truncate md:hidden">{item.artist}</div>
+          </div>
+          {/* Mobile-only Play Indicator */}
+          {showPlayButton && (
+            <div className="flex-none md:hidden">
+              {isPlaying ? (
+                <div className="flex items-center gap-0.5 h-3">
+                  <div className="w-1 bg-blue-500 animate-[music-bar_0.5s_ease-in-out_infinite]" />
+                  <div className="w-1 bg-blue-500 animate-[music-bar_0.7s_ease-in-out_infinite]" />
+                  <div className="w-1 bg-blue-500 animate-[music-bar_0.6s_ease-in-out_infinite]" />
+                </div>
+              ) : (
+                <div className="p-2 rounded-full bg-secondary/50">
+                  <svg className="size-4 fill-secondary" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

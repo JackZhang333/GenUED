@@ -133,6 +133,7 @@ export type NotionListeningHistoryItem = {
   url?: string;
   playedAt: string;
   image?: string;
+  audioUrl?: string;
 };
 
 // Design Details episode item type

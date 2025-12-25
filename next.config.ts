@@ -17,6 +17,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "i.scdn.co",
       },
+      {
+        protocol: "https",
+        hostname: "*.amazonaws.com",
+      },
       // Tencent COS domains
       {
         protocol: "https",

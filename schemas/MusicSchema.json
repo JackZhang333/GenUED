@@ -11,8 +11,8 @@
       "id": "Trqb",
       "name": "Spotify URL",
       "description": null,
-      "type": "url",
-      "url": {}
+      "type": "files",
+      "files": {}
     },
     "Artist": {
       "id": "a_dP",

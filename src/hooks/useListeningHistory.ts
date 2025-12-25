@@ -14,6 +14,7 @@ export type MusicItem = {
   url?: string;
   playedAt: string;
   image?: string;
+  audioUrl?: string;
 };
 
 export type ListeningHistoryPage = InfiniteScrollPage<MusicItem>;
