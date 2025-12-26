@@ -68,7 +68,7 @@ export type DesignDetailsEpisodes = z.infer<typeof DesignDetailsEpisodesSchema>;
 
 export const MusicSchema = z.object({
   "Played At": z.string().optional(),
-  "Spotify URL": z.array(z.any()).optional(),
+  "Spotify URL": z.string().optional(),
   Artist: z.string().optional(),
   icon: z.array(z.any()).optional(),
   Album: z.string().optional(),

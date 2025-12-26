@@ -14,12 +14,11 @@ import {
   Section,
   SectionHeading,
 } from "@/components/shared/ListComponents";
-import { createMetadata, createPersonJsonLd } from "@/lib/metadata";
+import { createMetadata, createPersonJsonLd, SITE_CONFIG } from "@/lib/metadata";
 
 export const metadata: Metadata = createMetadata({
-  title: "Johnny Chou",
-  description:
-    "Johnny Chou is a designer and software engineer living in San Francisco, currently designing AI products at Notion.",
+  title: SITE_CONFIG.name,
+  description:SITE_CONFIG.description,
   path: "/",
 });
 
