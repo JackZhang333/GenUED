@@ -1,5 +1,6 @@
 import { ImageResponse } from "@vercel/og";
-
+import path from "path"
+import fs from "fs"
 // OG Image dimensions
 export const OG_WIDTH = 1200;
 export const OG_HEIGHT = 630;
@@ -19,7 +20,12 @@ export const AVATAR_SIZE = 100;
 
 
 // Load avatar as base64
-
+export async function loadAvatar(): Promise<string> {
+  const avatarPath = path.join(process.cwd(),"public/img/avatar.jpg");
+  const avatarBuffer = fs.readFileSync(avatarPath);
+  const base64 = avatarBuffer.toString("base64");
+  return `data:image/jpeg;base64,{base64}`;
+}
 
 interface OGImageProps {
   title: string;
@@ -45,6 +51,7 @@ export function truncateOGTitle(title: string, maxLines: number = 3): string {
 
 export async function generateOGImage({ title, url }: OGImageProps) {
   try {
+    const avatarData = await loadAvatar();
     return new ImageResponse(
       <div
         style={{
@@ -57,8 +64,19 @@ export async function generateOGImage({ title, url }: OGImageProps) {
           backgroundColor: "white",
         }}
       >
-        {/* Placeholder for top area */}
-        <div style={{ display: "flex", height: AVATAR_SIZE }}>
+        {/* Avatar at top area */}
+        <div style={{display:"flex"}} >
+          <img 
+            src={avatarData}
+            alt="Avatar"
+            width={AVATAR_SIZE}
+            height={AVATAR_SIZE}
+            style={{
+              borderRadius:"50%"
+            }}
+          />
+
+          
         </div>
 
         {/* Title and URL at the bottom */}
