@@ -1,11 +1,18 @@
-import sharp from "sharp";
+/**
+ * Image optimization module with Tencent COS integration
+ * Provides unified interface for image processing and storage
+ */
 
-interface OptimizeImageOptions {
-  maxSize?: number; // Maximum width or height in pixels
-  quality?: number; // Quality setting (1-100)
+import sharp from "sharp";
+import { getCosStorage } from "@/lib/storage";
+
+export interface OptimizeImageOptions {
+  maxSize?: number; // Maximum width or height in pixels (default: 80 for icons)
+  quality?: number; // Quality setting 1-100 (default: 90)
+  format?: "jpeg" | "png" | "webp" | "auto"; // Output format (default: auto from source)
 }
 
-interface OptimizedImage {
+export interface OptimizedImage {
   buffer: Buffer;
   format: string;
   contentType: string;
@@ -16,9 +23,22 @@ interface OptimizedImage {
   savings: number; // Percentage saved
 }
 
+export interface ImageProcessResult {
+  success: boolean;
+  originalUrl: string;
+  optimizedUrl?: string;
+  error?: string;
+  stats?: {
+    originalSize: number;
+    optimizedSize: number;
+    savings: number;
+    width: number;
+    height: number;
+  };
+}
+
 /**
  * Optimize an image buffer by resizing and compressing
- * Default: max 80x80px, quality 90
  */
 export async function optimizeImage(
   buffer: Buffer,
@@ -98,6 +118,92 @@ export async function optimizeSiteIcon(buffer: Buffer): Promise<OptimizedImage> 
  * Optimize an image for blog posts (keep original size, high quality compression)
  */
 export async function optimizeWritingImage(buffer: Buffer): Promise<OptimizedImage> {
-  // Use a very large maxSize to prevent resizing, only compress
   return optimizeImage(buffer, { maxSize: 4000, quality: 90 });
+}
+
+/**
+ * Complete image optimization workflow: download → optimize → upload to COS
+ */
+export async function processImage(
+  imageUrl: string,
+  options: OptimizeImageOptions = {},
+): Promise<ImageProcessResult> {
+  const storage = getCosStorage();
+
+  try {
+    // Download image
+    const downloaded = await storage.download(imageUrl);
+    if (!downloaded) {
+      return {
+        success: false,
+        originalUrl: imageUrl,
+        error: "Failed to download image",
+      };
+    }
+
+    // Check if already optimized
+    if (storage.isOptimizedImage(imageUrl)) {
+      return {
+        success: true,
+        originalUrl: imageUrl,
+        optimizedUrl: imageUrl,
+        error: "Already optimized",
+      };
+    }
+
+    // Optimize image
+    const optimized = await optimizeImage(downloaded.buffer, options);
+
+    // Upload to COS
+    const uploadResult = await storage.uploadOptimizedImage(optimized.buffer, optimized.format);
+
+    // Delete old image if from our bucket
+    if (storage.isOurBucket(imageUrl)) {
+      await storage.delete(imageUrl);
+    }
+
+    return {
+      success: true,
+      originalUrl: imageUrl,
+      optimizedUrl: uploadResult.url,
+      stats: {
+        originalSize: downloaded.size,
+        optimizedSize: optimized.optimizedSize,
+        savings: optimized.savings,
+        width: optimized.width,
+        height: optimized.height,
+      },
+    };
+  } catch (error) {
+    console.error("[ImageProcessing] Error processing image:", error);
+    return {
+      success: false,
+      originalUrl: imageUrl,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+}
+
+/**
+ * Check if URL is a Notion S3 or proxy URL that needs mirroring
+ */
+export function isNotionImage(url: string | undefined): boolean {
+  if (!url) return false;
+  return (
+    url.includes("amazonaws.com") ||
+    url.includes("notion-static.com") ||
+    url.includes("www.notion.so/image")
+  );
+}
+
+/**
+ * Check if image needs optimization (Notion or COS image not yet optimized)
+ */
+export function needsOptimization(url: string | undefined): boolean {
+  if (!url) return false;
+  const storage = getCosStorage();
+  // Already optimized in COS
+  if (storage.isOptimizedImage(url)) return false;
+  // Needs optimization if it's from Notion or our COS bucket
+  return storage.isOurBucket(url) || isNotionImage(url);
 }

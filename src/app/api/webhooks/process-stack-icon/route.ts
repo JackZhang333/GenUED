@@ -41,8 +41,9 @@ export async function POST(request: Request) {
       if (page.icon.type === "external") {
         iconUrl = page.icon.external.url;
       } else if (page.icon.type === "files" && page.icon.files.length > 0) {
-        const firstFile = page.icon.files[0] as { file?: { url: string }; external?: { url: string } };
-        iconUrl = firstFile.file?.url || firstFile.external?.url;
+        const firstFile = page.icon.files[0];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        iconUrl = (firstFile as any).file?.url || (firstFile as any).external?.url;
       }
     }
 
