@@ -37,13 +37,14 @@ export async function POST(request: Request) {
 
     // Extract icon URL from page
     let iconUrl: string | undefined;
-    if ("icon" in page && page.icon) {
-      if (page.icon.type === "external") {
-        iconUrl = page.icon.external.url;
-      } else if (page.icon.type === "files" && page.icon.files.length > 0) {
-        const firstFile = page.icon.files[0];
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        iconUrl = (firstFile as any).file?.url || (firstFile as any).external?.url;
+    const pageData = page as any;
+    const icon = pageData.icon;
+    if (icon) {
+      if (icon.type === "external") {
+        iconUrl = icon.external.url;
+      } else if ((icon.type === "files" || icon.type === "file") && icon.files?.length > 0) {
+        const firstFile = icon.files[0];
+        iconUrl = firstFile.file?.url || firstFile.external?.url;
       }
     }
 
