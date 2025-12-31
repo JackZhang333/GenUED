@@ -24,7 +24,7 @@ export async function loadAvatar(): Promise<string> {
   const avatarPath = path.join(process.cwd(),"public/img/avatar.jpg");
   const avatarBuffer = fs.readFileSync(avatarPath);
   const base64 = avatarBuffer.toString("base64");
-  return `data:image/jpeg;base64,{base64}`;
+  return `data:image/jpeg;base64,${base64}`;
 }
 
 interface OGImageProps {
@@ -51,7 +51,6 @@ export function truncateOGTitle(title: string, maxLines: number = 3): string {
 
 export async function generateOGImage({ title, url }: OGImageProps) {
   try {
-    const avatarData = await loadAvatar();
     return new ImageResponse(
       <div
         style={{
@@ -59,26 +58,11 @@ export async function generateOGImage({ title, url }: OGImageProps) {
           height: OG_HEIGHT,
           display: "flex",
           flexDirection: "column",
-          justifyContent: "space-between",
+          justifyContent: "flex-end",
           padding: OG_PADDING,
           backgroundColor: "white",
         }}
       >
-        {/* Avatar at top area */}
-        <div style={{display:"flex"}} >
-          <img 
-            src={avatarData}
-            alt="Avatar"
-            width={AVATAR_SIZE}
-            height={AVATAR_SIZE}
-            style={{
-              borderRadius:"50%"
-            }}
-          />
-
-          
-        </div>
-
         {/* Title and URL at the bottom */}
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
           <div

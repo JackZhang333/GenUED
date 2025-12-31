@@ -1,4 +1,4 @@
-import { allAppDissectionItems } from "@/data/app-dissection";
+import { getAppDissectionContentBySlug } from "@/lib/notion";
 import { generateOGImage } from "@/lib/og-utils";
 
 export const runtime = "nodejs";
@@ -10,9 +10,9 @@ export const contentType = "image/png";
 
 export default async function Image(props: { params: Promise<{ slug: string }> }) {
   const params = await props.params;
-  const post = allAppDissectionItems.find((item) => item.slug === params.slug);
+  const content = await getAppDissectionContentBySlug(params.slug);
 
-  if (!post) {
+  if (!content) {
     // Fallback to generic title if post not found
     return generateOGImage({
       title: "App Dissection",
@@ -21,7 +21,7 @@ export default async function Image(props: { params: Promise<{ slug: string }> }
   }
 
   return generateOGImage({
-    title: `App Dissection / ${post.title}`,
+    title: `App Dissection / ${content.metadata.title}`,
     url: `genued.com/app-dissection/${params.slug}`,
   });
 }

@@ -1,0 +1,46 @@
+{
+  "props": {
+    "imageUrl 1": {
+      "id": "LZ%60u",
+      "name": "imageUrl 1",
+      "description": null,
+      "type": "rich_text",
+      "rich_text": {}
+    },
+    "Slug": {
+      "id": "TtjB",
+      "name": "Slug",
+      "description": null,
+      "type": "rich_text",
+      "rich_text": {}
+    },
+    "Created At": {
+      "id": "v%5Ecq",
+      "name": "Created At",
+      "description": null,
+      "type": "date",
+      "date": {}
+    },
+    "imageUrl": {
+      "id": "yPhM",
+      "name": "imageUrl",
+      "description": null,
+      "type": "url",
+      "url": {}
+    },
+    "Tint": {
+      "id": "%7CalH",
+      "name": "Tint",
+      "description": null,
+      "type": "rich_text",
+      "rich_text": {}
+    },
+    "Name": {
+      "id": "title",
+      "name": "Name",
+      "description": null,
+      "type": "title",
+      "title": {}
+    }
+  }
+}

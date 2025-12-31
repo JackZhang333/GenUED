@@ -156,6 +156,17 @@ export type NotionSpeakingItem = {
   href?: string;
 };
 
+// App Dissection item type
+export type NotionAppDissectionItem = {
+  id: string;
+  title: string;
+  slug: string;
+  description: string;
+  createdAt: string;
+  tint: string;
+  imageUrl?: string;
+};
+
 // Type guard to check if a page has properties
 export function hasProperties(
   page: PageResponse,

@@ -10,6 +10,7 @@ import {
   hasProperties,
   type NotionAmaItem,
   type NotionAmaItemWithContent,
+  type NotionAppDissectionItem,
   type NotionDesignDetailsEpisodeItem,
   type NotionItem,
   type NotionListeningHistoryItem,
@@ -664,5 +665,155 @@ export async function getSpeakingItems(): Promise<NotionSpeakingItem[]> {
   } catch (error) {
     console.error("Error fetching speaking items:", error);
     return [];
+  }
+}
+
+// ===== App Dissection Database =====
+
+export async function getAppDissectionDatabaseItems(): Promise<NotionAppDissectionItem[]> {
+  try {
+    const databaseId = process.env.NOTION_APP_DATABASE_ID;
+    if (!databaseId) return [];
+
+    const response = await notion.databases.query({
+      database_id: databaseId,
+      sorts: [
+        {
+          property: "Created At",
+          direction: "descending",
+        },
+      ],
+    });
+    // console.log("原始数据：",response.results)
+    const items = response.results
+      .map((page) => {
+        if (!hasProperties(page)) return null;
+
+        const pageWithProps = page as PageObjectResponse;
+        const properties = pageWithProps.properties as {
+          Name?: { title: { plain_text: string }[] };
+          Slug?: { rich_text: { plain_text: string }[] };
+          Description?: { rich_text: { plain_text: string }[] };
+          "Created At"?: { date: { start: string } | null };
+          Tint?: { rich_text: { plain_text: string }[] };
+          ImageURL?: { url: string };
+        };
+
+        return {
+          id: pageWithProps.id,
+          title: properties.Name?.title[0]?.plain_text || "Untitled",
+          slug: properties.Slug?.rich_text[0]?.plain_text || "",
+          description: properties.Description?.rich_text[0]?.plain_text || "",
+          createdAt: properties["Created At"]?.date?.start || pageWithProps.created_time,
+          tint: properties.Tint?.rich_text[0]?.plain_text || "#000000",
+          imageUrl: properties.ImageURL?.url || undefined,
+        } as NotionAppDissectionItem;
+      })
+      .filter((item): item is NotionAppDissectionItem => item !== null);
+      // console.log("从数据库查到的 App",items)
+    return items;
+  } catch (error) {
+    console.error("Error fetching app dissection items:", error);
+    return [];
+  }
+}
+
+export async function getAllAppDissectionItems(): Promise<NotionAppDissectionItem[]> {
+  let allItems: NotionAppDissectionItem[] = [];
+  let cursor: string | undefined;
+  let hasMore = true;
+
+  while (hasMore) {
+    const response = await notion.databases.query({
+      database_id: process.env.NOTION_APP_DATABASE_ID!,
+      page_size: 100,
+      ...(cursor ? { start_cursor: cursor } : {}),
+      sorts: [{ property: "Created At", direction: "descending" }],
+    });
+
+    const items = response.results
+      .map((page) => {
+        if (!hasProperties(page)) return null;
+        const pageWithProps = page as PageObjectResponse;
+        const properties = pageWithProps.properties as {
+          Name?: { title: { plain_text: string }[] };
+          Slug?: { rich_text: { plain_text: string }[] };
+          Description?: { rich_text: { plain_text: string }[] };
+          "Created At"?: { date: { start: string } | null };
+          Tint?: { rich_text: { plain_text: string }[] };
+          ImageURL?: { url: string };
+        };
+
+        return {
+          id: pageWithProps.id,
+          title: properties.Name?.title[0]?.plain_text || "Untitled",
+          slug: properties.Slug?.rich_text[0]?.plain_text || "",
+          description: properties.Description?.rich_text[0]?.plain_text || "",
+          createdAt: properties["Created At"]?.date?.start || pageWithProps.created_time,
+          tint: properties.Tint?.rich_text[0]?.plain_text || "#000000",
+          imageUrl: properties.ImageURL?.url || undefined,
+        } as NotionAppDissectionItem;
+      })
+      .filter((item): item is NotionAppDissectionItem => item !== null);
+
+    allItems = [...allItems, ...items];
+    cursor = response.next_cursor || undefined;
+    hasMore = !!response.next_cursor;
+  }
+
+  return allItems;
+}
+
+export async function getAppDissectionContentBySlug(
+  slug: string,
+): Promise<{ blocks: ProcessedBlock[]; metadata: NotionAppDissectionItem } | null> {
+  try {
+    const databaseId = process.env.NOTION_APP_DATABASE_ID;
+    if (!databaseId) return null;
+
+    const response = await notion.databases.query({
+      database_id: databaseId,
+      filter: {
+        property: "Slug",
+        rich_text: {
+          equals: slug,
+        },
+      },
+    });
+
+    if (response.results.length === 0) {
+      console.log(`No app dissection found with slug ${slug}`);
+      return null;
+    }
+
+    const page = response.results[0];
+    if (!hasProperties(page)) return null;
+
+    const pageWithProps = page as PageObjectResponse;
+    const properties = pageWithProps.properties as {
+      Name?: { title: { plain_text: string }[] };
+      Slug?: { rich_text: { plain_text: string }[] };
+      Description?: { rich_text: { plain_text: string }[] };
+      "Created At"?: { date: { start: string } | null };
+      Tint?: { rich_text: { plain_text: string }[] };
+      ImageURL?: { url: string };
+    };
+
+    const metadata: NotionAppDissectionItem = {
+      id: pageWithProps.id,
+      title: properties.Name?.title[0]?.plain_text || "Untitled",
+      slug: properties.Slug?.rich_text[0]?.plain_text || "",
+      description: properties.Description?.rich_text[0]?.plain_text || "",
+      createdAt: properties["Created At"]?.date?.start || pageWithProps.created_time,
+      tint: properties.Tint?.rich_text[0]?.plain_text || "#000000",
+      imageUrl: properties.ImageURL?.url || undefined,
+    };
+
+    const blocks = await getAllBlocks(pageWithProps.id);
+
+    return { blocks, metadata };
+  } catch (error) {
+    console.error(`Error fetching app dissection content for slug ${slug}:`, error);
+    return null;
   }
 }

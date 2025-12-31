@@ -87,6 +87,17 @@ export const GoodWebsitesSchema = z.object({
 
 export type GoodWebsites = z.infer<typeof GoodWebsitesSchema>;
 
+export const AppSchema = z.object({
+  "imageUrl 1": z.string().optional(),
+  Slug: z.string().optional(),
+  "Created At": z.string().optional(),
+  imageUrl: z.string().optional(),
+  Tint: z.string().optional(),
+  Name: z.string().optional(),
+});
+
+export type App = z.infer<typeof AppSchema>;
+
 export const SpeakingSchema = z.object({
   URL: z.string().optional(),
   Date: z.string().optional(),

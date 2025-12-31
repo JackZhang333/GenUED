@@ -156,12 +156,12 @@ const projects = [
   //   description: "A minimal hacker news reader",
   //   external: false,
   // },
-  // {
-  //   name: "App Dissection",
-  //   href: "/app-dissection",
-  //   description: "Breaking down well-designed apps",
-  //   external: false,
-  // },
+  {
+    name: "App Dissection",
+    href: "/app-dissection",
+    description: "Breaking down well-designed apps powered by AI",
+    external: false,
+  },
   {
     name: "Stack",
     href: "/stack",

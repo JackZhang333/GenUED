@@ -5,8 +5,7 @@ import { motion, MotionValue, useMotionValue, useSpring, useTransform } from "mo
 import Image from "next/image";
 import Link from "next/link";
 import { useRef } from "react";
-
-import { allAppDissectionItems } from "@/data/app-dissection";
+import type { NotionAppDissectionItem } from "@/lib/notion";
 
 const SCALE = 1.4; // max scale factor of an icon
 const DISTANCE = 110; // pixels before mouse affects an icon
@@ -23,9 +22,10 @@ const ITEMS_PER_SIDE_DESKTOP = 3; // Shows 7 total (current + 3 on each side)
 
 interface Props {
   currentSlug: string;
+  items: NotionAppDissectionItem[];
 }
 
-export function AppDissectionDock({ currentSlug }: Props) {
+export function AppDissectionDock({ currentSlug, items }: Props) {
   const mouseLeft = useMotionValue(-Infinity);
   const mouseRight = useMotionValue(-Infinity);
   const left = useTransform(mouseLeft, [0, 40], [0, -40]);
@@ -34,7 +34,7 @@ export function AppDissectionDock({ currentSlug }: Props) {
   const rightSpring = useSpring(right, SPRING);
 
   // Find current item index
-  const currentIndex = allAppDissectionItems.findIndex((item) => item.slug === currentSlug);
+  const currentIndex = items.findIndex((item) => item.slug === currentSlug);
 
   // Calculate visible items - always try to show 7 total, redistributing as needed
   const totalToShow = ITEMS_PER_SIDE_DESKTOP * 2 + 1; // 7 for desktop (3 + 1 + 3)
@@ -46,17 +46,17 @@ export function AppDissectionDock({ currentSlug }: Props) {
 
   // Adjust if we're near the beginning - show more on the right
   if (startIndex < 0) {
-    endIndex = Math.min(allAppDissectionItems.length, endIndex + Math.abs(startIndex));
+    endIndex = Math.min(items.length, endIndex + Math.abs(startIndex));
     startIndex = 0;
   }
 
   // Adjust if we're near the end - show more on the left
-  if (endIndex > allAppDissectionItems.length) {
-    startIndex = Math.max(0, startIndex - (endIndex - allAppDissectionItems.length));
-    endIndex = allAppDissectionItems.length;
+  if (endIndex > items.length) {
+    startIndex = Math.max(0, startIndex - (endIndex - items.length));
+    endIndex = items.length;
   }
 
-  const visibleItems = allAppDissectionItems.slice(startIndex, endIndex);
+  const visibleItems = items.slice(startIndex, endIndex);
 
   return (
     <div className="relative mx-auto flex items-center gap-2">
@@ -89,7 +89,7 @@ export function AppDissectionDock({ currentSlug }: Props) {
 
 interface AppIconProps {
   mouseLeft: MotionValue;
-  item: (typeof allAppDissectionItems)[number];
+  item: NotionAppDissectionItem;
   currentSlug: string;
 }
 
@@ -133,13 +133,20 @@ function AppIcon({ mouseLeft, item, currentSlug }: AppIconProps) {
               href={`/app-dissection/${item.slug}`}
               className="relative block will-change-transform"
             >
-              <Image
-                src={`/img/app-dissection/${item.slug}.jpeg`}
-                width={60}
-                height={60}
-                alt={`${item.title} icon`}
-                className="border-secondary/50 dark:border-secondary/30 aspect-square rounded-xl border shadow-sm"
-              />
+              {item.imageUrl ? (
+                <Image
+                  src={item.imageUrl}
+                  width={60}
+                  height={60}
+                  alt={`${item.title} icon`}
+                  className="border-secondary/50 dark:border-secondary/30 aspect-square rounded-xl border shadow-sm object-cover"
+                />
+              ) : (
+                <div
+                  className="border-secondary/50 dark:border-secondary/30 aspect-square rounded-xl border shadow-sm"
+                  style={{ width: 60, height: 60, backgroundColor: item.tint }}
+                />
+              )}
               {isActive && (
                 <motion.div
                   initial={{ scale: 0 }}

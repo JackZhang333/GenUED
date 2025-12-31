@@ -49,15 +49,15 @@ export const navigationItems: NavigationItem[] = [
   //   section: "projects",
   // },
 
-  // {
-  //   id: "app-dissection",
-  //   label: "App Dissection",
-  //   href: "/app-dissection",
-  //   icon: AppDissection,
-  //   keywords: ["app", "dissection", "analysis"],
-  //   isActive: (pathname) => pathname.startsWith("/app-dissection"),
-  //   section: "projects",
-  // },
+  {
+    id: "app-dissection",
+    label: "App Dissection",
+    href: "/app-dissection",
+    icon: AppDissection,
+    keywords: ["app", "dissection", "analysis"],
+    isActive: (pathname) => pathname.startsWith("/app-dissection"),
+    section: "projects",
+  },
   {
     id: "stack",
     label: "Stack",

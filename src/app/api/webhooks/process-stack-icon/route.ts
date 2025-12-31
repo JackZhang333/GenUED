@@ -40,8 +40,9 @@ export async function POST(request: Request) {
     if ("icon" in page && page.icon) {
       if (page.icon.type === "external") {
         iconUrl = page.icon.external.url;
-      } else if (page.icon.type === "file") {
-        iconUrl = page.icon.file.url;
+      } else if (page.icon.type === "files" && page.icon.files.length > 0) {
+        const firstFile = page.icon.files[0] as { file?: { url: string }; external?: { url: string } };
+        iconUrl = firstFile.file?.url || firstFile.external?.url;
       }
     }
 

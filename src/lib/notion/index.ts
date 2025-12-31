@@ -13,9 +13,11 @@ export type {
   Music,
   NotionAmaItem,
   NotionAmaItemWithContent,
+  NotionAppDissectionItem,
   NotionDesignDetailsEpisodeItem,
   NotionItem,
   NotionListeningHistoryItem,
+  NotionSpeakingItem,
   NotionStackItem,
   PageObjectResponse,
   PageResponse,
@@ -49,6 +51,10 @@ export {
   getAmaDatabaseItems,
   // AMA
   getAmaItemContent,
+  // App Dissection
+  getAllAppDissectionItems,
+  getAppDissectionContentBySlug,
+  getAppDissectionDatabaseItems,
   // Design Details
   getDesignDetailsEpisodeDatabaseItems,
   // Generic

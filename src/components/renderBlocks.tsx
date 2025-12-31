@@ -217,12 +217,12 @@ function renderSingleBlock(block: ProcessedBlock, isPreview: boolean): ReactNode
       return <hr key={block.id} className="border-primary my-6 border-t" />;
     case "image":
       return (
-        <div key={block.id}>
+        <div key={block.id} className="my-8 flex justify-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={block.content[0].text.content}
             alt=""
-            className="w-full rounded-lg"
+            style={{ width: 375, height: "auto" }}
             loading="lazy"
           />
         </div>

@@ -115,6 +115,7 @@ async function generateSchemas() {
     },
     { varName: "Music", id: process.env.NOTION_MUSIC_DATABASE_ID },
     { varName: "GoodWebsites", id: process.env.NOTION_GOOD_WEBSITES_DATABASE_ID },
+    { varName: "App", id: process.env.NOTION_APP_DATABASE_ID },
     { varName: "Speaking", id: process.env.NOTION_SPEAKING_DATABASE_ID },
   ];
 
