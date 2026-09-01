@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<base href="/profile/">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIAI.com 表单交互优化 · UX Case Study</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700;900&family=Urbanist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0A0D;
+  --panel:#131316;
+  --card:#1A1A1F;
+  --field:#2A2B2D;
+  --ink:#F4F4F6;
+  --dim:rgba(255,255,255,.55);
+  --faint:rgba(255,255,255,.32);
+  --line:rgba(255,255,255,.09);
+  --purple:#8B5CF6;
+  --pink:#F91C71;
+  --cyan:#3EE1FF;
+  --grad:linear-gradient(35deg,#FD6273 0%,#6C0AD4 50%,#3EE1FF 100%);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:'Noto Sans SC','Space Grotesk',-apple-system,sans-serif;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;
+}
+.en{font-family:'Space Grotesk','Noto Sans SC',sans-serif;}
+::selection{background:var(--purple);color:#fff;}
+
+/* ---------- reveal ---------- */
+.rv{opacity:0;transform:translateY(28px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.7,.2,1);}
+.rv.on{opacity:1;transform:none;}
+
+/* ---------- icons ---------- */
+.ic{display:inline-block;vertical-align:-.14em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+
+/* ---------- nav ---------- */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:50;
+  display:flex;justify-content:space-between;align-items:center;
+  padding:14px 28px;background:rgba(10,10,13,.82);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);
+}
+nav .logo{font-family:'Urbanist';font-weight:700;font-size:18px;letter-spacing:-.3px;}
+nav .logo em{font-style:normal;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+nav .tag{
+  font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+  border:1px solid var(--line);padding:6px 14px;border-radius:999px;color:var(--dim);
+}
+nav .back{color:var(--dim);text-decoration:none;font-size:13px;font-weight:500;margin-right:16px;}
+nav .back:hover{color:#fff;}
+
+/* ---------- hero ---------- */
+.hero{
+  min-height:96vh;display:flex;flex-direction:column;justify-content:center;
+  padding:150px 6vw 90px;position:relative;overflow:hidden;
+}
+.hero::before{
+  content:"";position:absolute;inset:0;
+  background:
+    radial-gradient(600px 400px at 85% 15%,rgba(139,92,246,.22),transparent 60%),
+    radial-gradient(500px 380px at 10% 85%,rgba(62,225,255,.10),transparent 60%),
+    radial-gradient(500px 400px at 60% 100%,rgba(249,28,113,.08),transparent 60%);
+  pointer-events:none;
+}
+.hero::after{
+  content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;
+  background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);
+  background-size:56px 56px;
+  mask-image:radial-gradient(ellipse 90% 80% at 50% 30%,#000 30%,transparent 75%);
+  -webkit-mask-image:radial-gradient(ellipse 90% 80% at 50% 30%,#000 30%,transparent 75%);
+}
+.hero>*{position:relative;z-index:1;}
+.kicker{
+  display:inline-block;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  border:1px solid rgba(139,92,246,.5);color:#C4B5FD;padding:8px 16px;border-radius:999px;margin-bottom:28px;width:fit-content;
+  box-shadow:0 0 24px rgba(139,92,246,.25);
+}
+.hero h1{
+  font-size:clamp(42px,7.5vw,96px);line-height:1.12;font-weight:900;letter-spacing:-.02em;max-width:900px;
+}
+.hero h1 .gr{
+  background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero .sub{margin-top:30px;font-size:clamp(15px,1.5vw,19px);font-weight:400;max-width:640px;line-height:1.9;color:var(--dim);}
+.hero .sub b{color:#fff;font-weight:700;}
+.hero .meta{margin-top:44px;display:flex;flex-wrap:wrap;gap:12px;}
+.hero .meta span{
+  font-size:13px;font-weight:500;border:1px solid var(--line);background:rgba(255,255,255,.03);
+  padding:8px 16px;border-radius:999px;color:var(--dim);
+}
+.scroll-hint{margin-top:64px;font-size:12px;font-weight:500;letter-spacing:2px;color:var(--faint);text-transform:uppercase;}
+
+/* ---------- marquee ---------- */
+.marquee{border-top:1px solid var(--line);border-bottom:1px solid var(--line);overflow:hidden;white-space:nowrap;padding:14px 0;background:rgba(255,255,255,.02);}
+.marquee .track{display:inline-block;animation:mq 24s linear infinite;font-weight:500;font-size:15px;letter-spacing:2px;color:var(--faint);font-family:'Space Grotesk';}
+.marquee .track span{margin:0 26px;}
+.marquee .track .hl-c{color:var(--cyan);}
+.marquee .track .hl-p{color:#C4B5FD;}
+@keyframes mq{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+
+/* ---------- sections ---------- */
+section{padding:110px 6vw;max-width:1180px;margin:0 auto;position:relative;}
+.sec-head{display:flex;align-items:baseline;gap:20px;margin-bottom:18px;flex-wrap:wrap;}
+.sec-num{
+  font-family:'Space Grotesk';font-weight:700;font-size:14px;
+  border:1px solid rgba(139,92,246,.5);color:#C4B5FD;padding:6px 12px;border-radius:8px;
+}
+.sec-title{font-size:clamp(28px,4vw,46px);font-weight:900;letter-spacing:-.01em;}
+.sec-lead{font-size:16px;line-height:1.95;color:var(--dim);max-width:780px;}
+.sec-lead b{color:#fff;font-weight:700;}
+.sec-lead .u{background:linear-gradient(transparent 62%,rgba(139,92,246,.45) 62%,rgba(139,92,246,.45) 94%,transparent 94%);color:#fff;}
+
+/* ---------- cards ---------- */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;margin-top:44px;}
+.card{
+  background:var(--card);border:1px solid var(--line);border-radius:16px;padding:28px;position:relative;
+  transition:border-color .25s,transform .25s;
+}
+.card:hover{border-color:rgba(139,92,246,.45);transform:translateY(-3px);}
+.card .ico{
+  width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+  background:rgba(139,92,246,.12);color:#C4B5FD;margin-bottom:18px;
+}
+.card h3{font-size:17px;font-weight:700;margin-bottom:10px;}
+.card h3 .en{color:var(--faint);font-weight:500;font-size:12px;display:block;margin-top:2px;letter-spacing:1px;}
+.card p{font-size:14px;line-height:1.8;color:var(--dim);}
+.card .idx{
+  position:absolute;top:22px;right:24px;font-family:'Space Grotesk';font-weight:700;font-size:13px;color:var(--faint);
+}
+.card.accent{border-color:rgba(139,92,246,.5);background:linear-gradient(160deg,rgba(139,92,246,.14),var(--card) 55%);}
+
+/* ---------- evidence screenshot ---------- */
+.evidence{
+  margin-top:24px;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--panel);
+}
+.evidence img{width:100%;display:block;opacity:.95;}
+.evidence .ev-cap{
+  display:flex;align-items:center;gap:10px;padding:14px 18px;border-top:1px solid var(--line);
+  font-size:13px;font-weight:700;
+}
+.evidence .ev-cap .dot{width:10px;height:10px;border-radius:50%;background:var(--pink);box-shadow:0 0 10px var(--pink);}
+.evidence .ev-cap span{color:var(--dim);font-weight:400;}
+
+/* ---------- big stat callout ---------- */
+.callout{
+  margin-top:48px;border:1px solid rgba(249,28,113,.35);border-radius:18px;
+  background:linear-gradient(160deg,rgba(249,28,113,.10),rgba(19,19,22,.6) 60%);
+  padding:36px 40px;display:flex;gap:36px;align-items:center;flex-wrap:wrap;
+}
+.callout .big{font-family:'Space Grotesk';font-weight:700;font-size:clamp(44px,6vw,72px);line-height:1;color:#fff;white-space:nowrap;}
+.callout .big em{font-style:normal;color:var(--pink);}
+.callout p{flex:1;min-width:260px;font-size:15px;line-height:1.9;color:var(--dim);}
+.callout p b{color:#fff;}
+
+/* ---------- before/after shots ---------- */
+.shots{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;margin-top:48px;}
+.shot{border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--panel);}
+.shot img{width:100%;display:block;opacity:.92;}
+.shot .cap{
+  display:flex;align-items:center;gap:10px;padding:14px 18px;border-top:1px solid var(--line);
+  font-size:13px;font-weight:700;
+}
+.shot .cap .dot{width:10px;height:10px;border-radius:50%;}
+.shot.old .cap .dot{background:#6b6b6e;}
+.shot.new .cap .dot{background:var(--purple);box-shadow:0 0 10px var(--purple);}
+.shot .cap span{color:var(--dim);font-weight:400;}
+.shot.new{border-color:rgba(139,92,246,.4);}
+
+/* ---------- personas ---------- */
+.personas{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;margin-top:44px;}
+.persona{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:26px;}
+.persona .p-top{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+.persona .p-ico{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;}
+.persona h3{font-size:16px;font-weight:700;}
+.persona .p-share{font-family:'Space Grotesk';font-size:12px;color:var(--faint);font-weight:500;}
+.persona .goal{font-size:14px;line-height:1.8;color:#fff;font-weight:500;margin-bottom:12px;}
+.persona ul{list-style:none;}
+.persona li{font-size:13px;line-height:1.7;color:var(--dim);padding-left:16px;position:relative;margin-bottom:6px;}
+.persona li::before{content:"";position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:2px;background:var(--purple);opacity:.7;}
+.conclusion{
+  margin-top:32px;text-align:center;font-size:clamp(17px,2.2vw,22px);font-weight:700;
+  border:1px solid var(--line);border-radius:16px;padding:28px 32px;background:rgba(139,92,246,.07);
+}
+.conclusion .gr{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+
+/* ---------- prototype ---------- */
+.proto-wrap{display:flex;gap:56px;align-items:flex-start;justify-content:center;margin-top:50px;flex-wrap:wrap;}
+.proto-notes{max-width:360px;flex:1 1 300px;}
+.proto-notes h3{font-size:19px;font-weight:900;margin-bottom:18px;display:flex;align-items:center;gap:10px;}
+.try-item{
+  display:flex;gap:14px;align-items:flex-start;margin-bottom:14px;
+  background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px 17px;
+}
+.try-item .n{
+  font-family:'Space Grotesk';font-weight:700;background:rgba(139,92,246,.18);color:#C4B5FD;
+  width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex:0 0 26px;font-size:13px;
+}
+.try-item p{font-size:13.5px;line-height:1.7;color:var(--dim);}
+.try-item code{color:#fff;background:rgba(139,92,246,.25);padding:1px 8px;border-radius:6px;font-size:12px;}
+.try-item kbd{color:var(--cyan);font-family:inherit;font-weight:700;}
+
+/* mode toggle */
+.mode-toggle{
+  display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:4px;background:var(--panel);
+  margin-bottom:18px;position:relative;
+}
+.mode-toggle button{
+  font-family:inherit;font-size:13px;font-weight:700;padding:9px 22px;border-radius:999px;border:none;cursor:pointer;
+  background:transparent;color:var(--dim);transition:all .25s;
+}
+.mode-toggle button.on-before{background:#3a3a3e;color:#fff;}
+.mode-toggle button.on-after{background:var(--grad);color:#fff;}
+.mode-label{font-size:12px;color:var(--faint);margin-bottom:22px;line-height:1.7;min-height:34px;}
+.mode-label b{color:#fff;}
+
+/* form panel — 复刻线上样式 */
+.panel{
+  width:424px;max-width:100%;background:#181818;border:1px solid var(--line);border-radius:16px;
+  overflow:hidden;position:relative;font-family:'Urbanist','Noto Sans SC',sans-serif;
+  box-shadow:0 30px 80px rgba(0,0,0,.5),0 0 60px rgba(139,92,246,.08);
+  flex:0 0 auto;
+}
+.panel-head{padding:20px 24px 12px;display:flex;align-items:center;justify-content:space-between;}
+.panel-head h4{font-size:20px;font-weight:600;color:#fff;}
+.panel-head .credits{font-size:11px;color:var(--faint);border:1px solid var(--line);padding:4px 10px;border-radius:999px;}
+.panel-body{
+  height:560px;overflow-y:auto;padding:4px 24px 24px;scroll-behavior:smooth;
+  display:flex;flex-direction:column;gap:22px;
+}
+.panel-body::-webkit-scrollbar{width:4px;}
+.panel-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:4px;}
+.model-card{
+  background:var(--field);border-radius:6px;padding:12px;display:flex;gap:10px;align-items:center;cursor:pointer;
+}
+.model-card .g{
+  width:20px;height:20px;border-radius:6px;flex:0 0 20px;
+  background:conic-gradient(#4285F4 0 25%,#34A853 25% 50%,#FBBC05 50% 75%,#EA4335 75%);
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;
+}
+.model-card .mt{flex:1;min-width:0;}
+.model-card .mt b{display:block;font-size:14px;font-weight:400;color:#fff;}
+.model-card .mt span{display:block;font-size:12px;color:rgba(255,255,255,.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.model-card .chev{color:rgba(255,255,255,.5);font-size:12px;}
+
+.f-label-row{display:flex;align-items:center;gap:12px;margin-bottom:8px;}
+.f-label{font-size:12px;font-weight:600;color:#fff;flex:1;}
+.f-label i{font-style:normal;color:var(--pink);}
+.f-opt{font-size:12px;color:rgba(255,255,255,.7);}
+.field{background:var(--field);border-radius:6px;transition:box-shadow .3s;}
+.field.err{box-shadow:0 0 0 2px var(--pink),0 0 24px rgba(249,28,113,.35);animation:fieldPulse .5s ease;}
+@keyframes fieldPulse{0%{transform:scale(1);}40%{transform:scale(1.015);}100%{transform:scale(1);}}
+
+.upload-box{
+  height:120px;display:flex;flex-direction:column;gap:8px;align-items:center;justify-content:center;
+  cursor:pointer;color:#696A6B;font-size:12px;font-weight:500;
+}
+.upload-box:hover{color:#9a9a9d;}
+.upload-box .up-ico{font-size:0;color:#8a8a8d;}
+.uploaded{display:flex;align-items:center;gap:12px;padding:12px;}
+.uploaded img{width:56px;height:56px;object-fit:cover;border-radius:6px;}
+.uploaded .fi-name{flex:1;min-width:0;}
+.uploaded .fi-name b{display:block;font-size:13px;color:#fff;font-weight:600;}
+.uploaded .fi-name span{font-size:11px;color:rgba(255,255,255,.5);}
+.uploaded .rm{border:none;background:rgba(255,255,255,.08);color:#fff;width:26px;height:26px;border-radius:6px;cursor:pointer;font-size:12px;}
+.examples{display:flex;gap:14px;font-size:12px;color:rgba(255,255,255,.5);margin-top:8px;flex-wrap:wrap;}
+.examples a{color:rgba(255,255,255,.55);cursor:pointer;text-decoration:none;border-bottom:1px dashed rgba(255,255,255,.25);}
+.examples a:hover{color:var(--cyan);border-color:var(--cyan);}
+
+.prompt-area{padding:12px;display:flex;flex-direction:column;gap:8px;}
+.prompt-area textarea{
+  width:100%;height:88px;background:transparent;border:none;outline:none;resize:none;
+  font-family:inherit;font-size:14px;color:#fff;line-height:1.6;
+}
+.prompt-area textarea::placeholder{color:rgba(255,255,255,.3);}
+.prompt-foot{display:flex;align-items:flex-end;justify-content:space-between;}
+.assist{
+  display:flex;gap:5px;align-items:center;background:rgba(255,255,255,.05);border:none;border-radius:4px;
+  padding:6px 12px;font-size:12px;cursor:pointer;font-family:inherit;
+  color:transparent;background-image:linear-gradient(53deg,#FFE3AA,#E8ECFF 51%,#BBA3FF);
+  -webkit-background-clip:text;background-clip:text;
+}
+.assist-wrap{background:rgba(255,255,255,.05);border-radius:4px;padding:0;width:fit-content;}
+.assist:hover{filter:brightness(1.2);}
+.char-count{font-size:12px;color:rgba(255,255,255,.5);}
+
+.switch{
+  width:28px;height:16px;border-radius:20px;background:#353638;border:none;cursor:pointer;position:relative;
+  transition:background .2s;flex:0 0 28px;padding:2px;
+}
+.switch::after{
+  content:"";display:block;width:12px;height:12px;border-radius:16px;background:#fff;transition:transform .2s;
+}
+.switch.on{background:var(--purple);}
+.switch.on::after{transform:translateX(12px);}
+
+.seg-row{display:flex;align-items:center;justify-content:space-between;}
+.seg-row .f-label{margin:0;}
+.size-card{display:flex;gap:10px;align-items:center;padding:12px;cursor:pointer;}
+.size-card .ratio-thumb{width:18px;height:30px;background:#959697;border-radius:2px;}
+.size-card b{flex:1;font-size:14px;font-weight:600;color:#fff;}
+.size-card .chev{color:rgba(255,255,255,.5);}
+
+.duration-opts{display:flex;gap:18px;align-items:center;}
+.dur{
+  display:flex;align-items:center;gap:7px;font-size:13px;color:rgba(255,255,255,.5);cursor:pointer;
+}
+.dur .r{width:14px;height:14px;border-radius:50%;border:1.5px solid rgba(255,255,255,.25);position:relative;}
+.dur.on{color:#fff;}
+.dur.on .r{border-color:var(--purple);}
+.dur.on .r::after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--purple);}
+
+.adv-bar{
+  display:flex;gap:10px;align-items:center;justify-content:center;padding:13px;cursor:pointer;
+  font-size:14px;color:#fff;user-select:none;
+}
+.adv-bar .chev{transition:transform .25s;color:rgba(255,255,255,.5);font-size:11px;}
+.adv-bar.open .chev{transform:rotate(180deg);}
+.adv-group{display:none;flex-direction:column;gap:22px;}
+.adv-group.open{display:flex;}
+.panel.before .adv-wrap{display:none;}
+.panel.before .adv-group{display:flex;}
+
+.res-seg{display:flex;background:var(--field);border-radius:6px;padding:4px;gap:4px;}
+.res-seg button{
+  flex:1;border:none;background:transparent;color:rgba(255,255,255,.5);font-family:inherit;
+  font-size:13px;font-weight:600;padding:9px 0;border-radius:4px;cursor:pointer;
+}
+.res-seg button.on{background:var(--purple);color:#fff;}
+.seed-row{display:flex;gap:8px;}
+.seed-row .seed-in{
+  flex:1;background:var(--field);border:none;border-radius:6px;padding:11px 12px;color:#fff;
+  font-family:inherit;font-size:13px;outline:none;
+}
+.seed-row .icon-btn{
+  width:40px;border:none;border-radius:6px;background:var(--field);color:rgba(255,255,255,.6);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+}
+
+.generate-zone{padding:16px 24px 22px;border-top:1px solid var(--line);background:#181818;position:relative;}
+.gen-btn{
+  width:100%;height:44px;border:none;border-radius:6px;cursor:pointer;
+  background:var(--grad);color:#fff;font-family:'Urbanist';font-size:14px;font-weight:500;
+  display:flex;align-items:center;justify-content:center;gap:6px;transition:filter .2s;
+}
+.gen-btn:hover{filter:brightness(1.12);}
+.gen-btn .star{opacity:.7;font-size:11px;}
+.panel.before .gen-btn{background:#2A2B2D;color:rgba(255,255,255,.3);cursor:not-allowed;}
+.panel.before .gen-btn:hover{filter:none;}
+.gen-btn.shake{animation:shake .4s ease;}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}50%{transform:translateX(5px);}75%{transform:translateX(-3px);}}
+.dead-counter{
+  position:absolute;top:-16px;right:24px;font-size:11px;font-weight:700;color:#fff;
+  background:var(--pink);padding:4px 12px;border-radius:999px;box-shadow:0 4px 14px rgba(249,28,113,.5);
+  display:none;font-family:'Noto Sans SC';
+}
+.dead-counter.show{display:block;animation:popc .3s cubic-bezier(.2,.9,.3,1.4);}
+@keyframes popc{from{transform:scale(.6);opacity:0;}}
+.panel-hint{
+  position:absolute;bottom:84px;left:50%;transform:translateX(-50%);
+  background:rgba(0,0,0,.85);border:1px solid var(--line);color:#fff;font-size:12px;font-weight:500;
+  padding:9px 18px;border-radius:999px;z-index:10;display:none;white-space:nowrap;font-family:'Noto Sans SC';
+}
+.panel-hint.show{display:block;animation:hintin .3s ease;}
+@keyframes hintin{from{opacity:0;transform:translateX(-50%) translateY(8px);}}
+
+/* generating overlay */
+.gen-overlay{
+  position:absolute;inset:0;background:rgba(10,10,13,.92);backdrop-filter:blur(6px);z-index:20;
+  display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:32px;text-align:center;
+}
+.gen-overlay.show{display:flex;}
+.gen-ring{width:52px;height:52px;border-radius:50%;border:3px solid rgba(255,255,255,.12);border-top-color:var(--purple);animation:rot 1s linear infinite;}
+@keyframes rot{to{transform:rotate(360deg);}}
+.gen-overlay p{font-size:13px;color:var(--dim);font-family:'Noto Sans SC';}
+.result-card{width:100%;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel);}
+.result-card img{width:100%;display:block;}
+.result-card .rc-cap{padding:12px 14px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--dim);font-family:'Noto Sans SC';}
+.result-card .rc-cap .ok-dot{width:8px;height:8px;border-radius:50%;background:#34D399;box-shadow:0 0 8px #34D399;}
+.try-again{
+  border:1px solid var(--line);background:transparent;color:#fff;font-family:'Noto Sans SC';font-size:13px;font-weight:500;
+  padding:10px 24px;border-radius:999px;cursor:pointer;
+}
+.try-again:hover{border-color:var(--purple);}
+
+/* ---------- results stats ---------- */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:20px;margin-top:48px;}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:30px 26px;position:relative;overflow:hidden;}
+.stat::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:var(--grad);opacity:.7;}
+.stat .lbl{font-size:12px;font-weight:700;letter-spacing:1.5px;color:var(--faint);margin-bottom:14px;}
+.stat .num{font-family:'Space Grotesk';font-weight:700;font-size:clamp(36px,3.6vw,48px);line-height:1;color:#fff;}
+.stat .before{font-size:13px;color:var(--faint);margin-top:10px;}
+.stat .before s{margin-right:6px;}
+.stat .delta{
+  display:inline-block;margin-top:14px;font-size:12px;font-weight:700;font-family:'Space Grotesk';
+  padding:5px 12px;border-radius:999px;background:rgba(52,211,153,.12);color:#34D399;
+}
+.footnote{margin-top:36px;font-size:12.5px;color:var(--faint);line-height:1.8;}
+
+/* ---------- footer ---------- */
+footer{border-top:1px solid var(--line);padding:60px 6vw;text-align:center;}
+footer .big{font-size:clamp(24px,3.5vw,40px);font-weight:900;margin-bottom:14px;}
+footer .big .gr{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+footer p{font-size:13px;color:var(--faint);}
+footer a{color:var(--dim);}
+
+@media(max-width:640px){
+  section{padding:80px 5vw;}
+  .hero{padding:130px 5vw 70px;}
+  .panel{width:100%;}
+  .callout{padding:28px;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div style="display:flex;align-items:center;">
+    <a class="back" href="index.html">← 全部案例</a>
+    <div class="logo">aiai<em>.com</em> / case</div>
+  </div>
+  <div class="tag">UX Leadership · 2026</div>
+</nav>
+
+<header class="hero">
+  <p class="kicker rv">UX 负责人 · 表单交互重构</p>
+  <h1 class="rv">按钮灰掉了，<br><span class="gr">用户也走掉了。</span></h1>
+  <p class="sub rv">AIAI.com 是聚合主流大模型的 AI 内容生产平台，面向海外用户提供视频、图片、音乐、音频等生成能力。Clarity 行为数据揭示了一个隐形漏斗杀手：<b>灰显的提交按钮</b>。这个 Case 记录我作为 UX 负责人，如何定位并修复它。</p>
+  <div class="meta rv">
+    <span>角色 · UX 负责人</span>
+    <span>平台 · AIAI.com Web</span>
+    <span>范围 · Image to Video 生成表单</span>
+    <span>方法 · Clarity 行为分析 / 专家评审 / 可用性测试</span>
+  </div>
+  <div class="scroll-hint rv">↓ 往下滚动，看完整决策过程</div>
+</header>
+
+<div class="marquee" aria-hidden="true">
+  <div class="track">
+    <span>ALWAYS-ACTIVE CTA <span class="hl-p">✦</span></span><span>PROGRESSIVE DISCLOSURE <span class="hl-c">✦</span></span><span>AUTO-SCROLL TO ERROR <span class="hl-p">✦</span></span><span>2 REQUIRED FIELDS ONLY <span class="hl-c">✦</span></span>
+    <span>ALWAYS-ACTIVE CTA <span class="hl-p">✦</span></span><span>PROGRESSIVE DISCLOSURE <span class="hl-c">✦</span></span><span>AUTO-SCROLL TO ERROR <span class="hl-p">✦</span></span><span>2 REQUIRED FIELDS ONLY <span class="hl-c">✦</span></span>
+  </div>
+</div>
+
+<!-- 01 背景 -->
+<section>
+  <div class="sec-head rv">
+    <span class="sec-num">01</span>
+    <h2 class="sec-title">背景：生成表单，是所有能力的总入口</h2>
+  </div>
+  <p class="sec-lead rv">AIAI.com 聚合主流大模型服务商，把<b>视频生成、图片生成、音乐音频、场景化应用</b>（去水印、老照片修复、室内效果图等）装进同一个创作台。无论用户用哪种能力，最后一步都收敛到同一个动作：<b>填写生成表单 → 点击 Generate</b>。这张表单的表现，直接决定平台的商业漏斗。</p>
+  <div class="cards">
+    <div class="card rv">
+      <div class="ico"><svg class="ic" width="22" height="22" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M3 9h18M8 4v5"/></svg></div>
+      <h3>多模型聚合<span class="en">MULTI-MODEL</span></h3>
+      <p>接入 Veo、Sora、Nano Banana 等主流大模型，分析接口能力差异，按场景路由最优模型。</p>
+    </div>
+    <div class="card rv">
+      <div class="ico"><svg class="ic" width="22" height="22" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div>
+      <h3>全模态生产<span class="en">ALL MODALITIES</span></h3>
+      <p>视频、图片、音乐、音频、文字——所有 AI 生产能力共用同一套表单交互范式。</p>
+    </div>
+    <div class="card rv">
+      <div class="ico"><svg class="ic" width="22" height="22" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+      <h3>按次计费<span class="en">CREDITS</span></h3>
+      <p>每次生成都消耗 Credits。表单每一次失败和放弃，都是真金白银的流失。</p>
+    </div>
+  </div>
+</section>
+
+<!-- 02 问题 -->
+<section>
+  <div class="sec-head rv">
+    <span class="sec-num">02</span>
+    <h2 class="sec-title">问题：灰显的按钮，成了隐形漏斗杀手</h2>
+  </div>
+  <p class="sec-lead rv">通过 Clarity 数据平台观察大量线上用户行为录像，我们发现一个高频且刺眼的行为模式：用户疯狂点击<b>灰显的 Generate 按钮</b>——没有响应、再点、还是没有响应——最终放弃任务，跳离网站。流量获取成本很高，这个小细节在持续放血。</p>
+  <div class="callout rv">
+    <div class="big"><em>灰按钮</em> 死点击</div>
+    <p>行为录像中的典型路径：上传图片 → 直接点击底部 Generate（<b>按钮灰显</b>）→ 无响应 → 快速连点 3~6 次 → 滚动寻找原因无果 → <b>关闭标签页</b>。用户始终没意识到：还有必填项没填。</p>
+  </div>
+  <div class="evidence rv">
+    <img src="assets/aiai-clarity.jpg" alt="Clarity 会话回放：用户多次点击灰显的 Generate 按钮，04:02 处录得连续 rage clicks">
+    <div class="ev-cap"><span class="dot"></span>Clarity 会话回放 · 证据 <span>— 会话见解记录：用户从 Google 进入 Image to Video 页，多次点击 Generate 无响应，04:02 处出现连续 rage clicks，最终未生成即离开</span></div>
+  </div>
+  <div class="cards">
+    <div class="card rv">
+      <div class="ico"><svg class="ic" width="22" height="22" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg></div>
+      <h3>根本原因<span class="en">ROOT CAUSE</span></h3>
+      <p>「必填项未填 → 按钮灰显」是表单设计的默认规范。规范假设用户会先理解界面再操作——但这个假设在这里不成立。</p>
+    </div>
+    <div class="card rv">
+      <div class="ico"><svg class="ic" width="22" height="22" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+      <h3>用户心智<span class="en">MENTAL MODEL</span></h3>
+      <p>流程简单、表单复杂、目标明确：用户没有耐心理解界面，直接操作，并预期系统立即给出结果。</p>
+    </div>
+    <div class="card rv">
+      <div class="ico"><svg class="ic" width="22" height="22" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg></div>
+      <h3>商业损失<span class="en">IMPACT</span></h3>
+      <p>每一次死点击都是一次付费意图的流失：任务失败 → 无生成结果 → 无 Credits 消耗 → 更无订阅转化。</p>
+    </div>
+  </div>
+</section>
+
+<!-- 03 设计策略 -->
+<section>
+  <div class="sec-head rv">
+    <span class="sec-num">03</span>
+    <h2 class="sec-title">设计策略：打破表单的默认模式</h2>
+  </div>
+  <p class="sec-lead rv">洞察到问题后，我立即组织专家评审，把表单交互彻底重构一遍，再用真实用户测试验证。核心思路只有一句话：<b>不要在用户点击之前说教，在用户点击的瞬间给出引导</b>。</p>
+  <div class="cards">
+    <div class="card accent rv">
+      <span class="idx">策略 1</span>
+      <div class="ico"><svg class="ic" width="22" height="22" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+      <h3>按钮始终激活<span class="en">ALWAYS-ACTIVE CTA</span></h3>
+      <p>打破「必填未填 → 按钮灰显」的默认规范。按钮随时可点；点击时表单自动滚动并高亮聚焦第一个未填写的必填项——错误从「静默惩罚」变成「主动带路」。</p>
+    </div>
+    <div class="card rv">
+      <span class="idx">策略 2</span>
+      <div class="ico"><svg class="ic" width="22" height="22" viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h6"/></svg></div>
+      <h3>高级选项默认收起<span class="en">PROGRESSIVE DISCLOSURE</span></h3>
+      <p>为主流用户而设计：视频比例、配音、时长、分辨率、Seed、Negative Prompt 全部收进 Advanced Settings，专业用户一键展开，普通用户完全无感。</p>
+    </div>
+    <div class="card rv">
+      <span class="idx">策略 3</span>
+      <div class="ico"><svg class="ic" width="22" height="22" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M12 6v12"/></svg></div>
+      <h3>首尾帧开关<span class="en">END-FRAME TOGGLE</span></h3>
+      <p>首尾帧默认仅展示首帧上传，通过 Add end frame 开关按需展开尾帧入口——少一个输入框，就少一分认知负担。</p>
+    </div>
+    <div class="card rv">
+      <span class="idx">策略 4</span>
+      <div class="ico"><svg class="ic" width="22" height="22" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6.5"/></svg></div>
+      <h3>只剩两个必填项<span class="en">2 REQUIRED FIELDS</span></h3>
+      <p>表单简化为「首帧 + 提示语」。长表单变成短表单，进入用户熟悉的心智模式——就像注册登录：填两项，按钮永远亮着。</p>
+    </div>
+  </div>
+  <div class="shots">
+    <div class="shot old rv">
+      <img src="assets/aiai-before.png" alt="优化前：生成按钮灰显">
+      <div class="cap"><span class="dot"></span>优化前 <span>· 必填未填，Generate 灰显无响应</span></div>
+    </div>
+    <div class="shot new rv">
+      <img src="assets/aiai-after.png" alt="优化后：按钮始终激活，高级选项收起">
+      <div class="cap"><span class="dot"></span>优化后 <span>· 按钮始终激活，高级项收进 Advanced Settings</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 04 可用性测试 -->
+<section>
+  <div class="sec-head rv">
+    <span class="sec-num">04</span>
+    <h2 class="sec-title">可用性测试：为三类用户分别验证</h2>
+  </div>
+  <p class="sec-lead rv">方案原型邀请真实用户测试。我们把被试按使用意图分成三类，验证同一个表单能否同时服务他们：</p>
+  <div class="personas">
+    <div class="persona rv">
+      <div class="p-top">
+        <div class="p-ico" style="background:rgba(62,225,255,.12);color:var(--cyan);"><svg class="ic" width="20" height="20" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+        <div><h3>快速产出型</h3><div class="p-share">主流普通用户 · ~80%</div></div>
+      </div>
+      <p class="goal">“我只想快速把图片变成视频，越快越好。”</p>
+      <ul>
+        <li>不想看见高级参数</li>
+        <li>希望默认值就是合理的</li>
+        <li>期待「一键出片」</li>
+        <li>典型产出：6 秒竖屏短视频</li>
+      </ul>
+    </div>
+    <div class="persona rv">
+      <div class="p-top">
+        <div class="p-ico" style="background:rgba(139,92,246,.14);color:#C4B5FD;"><svg class="ic" width="20" height="20" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg></div>
+        <div><h3>内容创作型</h3><div class="p-share">博主 / 创作者</div></div>
+      </div>
+      <p class="goal">“我希望视频符合特定的风格需求。”</p>
+      <ul>
+        <li>会认真修改 prompt</li>
+        <li>会调分辨率和时长</li>
+        <li>偶尔需要音频调整</li>
+        <li>对结束帧、负向提示词理解较弱</li>
+      </ul>
+    </div>
+    <div class="persona rv">
+      <div class="p-top">
+        <div class="p-ico" style="background:rgba(249,28,113,.12);color:#FB7BA4;"><svg class="ic" width="20" height="20" viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3"/><path d="M1 14h6M9 8h6M17 16h6"/></svg></div>
+        <div><h3>专业调参型</h3><div class="p-share">测评 / 重度用户</div></div>
+      </div>
+      <p class="goal">“我需要可控性，精确复现每一个参数。”</p>
+      <ul>
+        <li>会用 Negative prompt</li>
+        <li>会锁定 Seed 复现结果</li>
+        <li>关注 Resolution 和 End frame</li>
+        <li>对折叠项不抵触，能找到就行</li>
+      </ul>
+    </div>
+  </div>
+  <div class="conclusion rv">设计结论：<span class="gr">对 80% 的用户极简，对 20% 的专业用户可扩展。</span></div>
+</section>
+
+<!-- 05 原型 -->
+<section id="proto">
+  <div class="sec-head rv">
+    <span class="sec-num">05</span>
+    <h2 class="sec-title">原型：亲手点一点那个按钮</h2>
+  </div>
+  <p class="sec-lead rv">下面是 <b>Image to Video</b> 表单的可操作高保真原型。用顶部的开关在<b>优化前（Before）</b>和<b>优化后（After）</b>之间切换，亲手体验两种模式的差别。</p>
+  <div class="proto-wrap">
+    <div class="proto-notes rv">
+      <h3><svg class="ic" width="20" height="20" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M10 8.5l6 3.5-6 3.5v-7z"/></svg> 试玩指南</h3>
+      <div class="try-item">
+        <div class="n">1</div>
+        <p>先切到 <kbd>Before</kbd>：什么都不填，直接点 Generate——体验旧版灰按钮的「死点击」，右上角会计数。</p>
+      </div>
+      <div class="try-item">
+        <div class="n">2</div>
+        <p>切回 <kbd>After</kbd>：同样什么都不填，直接点 Generate——表单会<b>自动滚动</b>并高亮第一个未填的必填项。</p>
+      </div>
+      <div class="try-item">
+        <div class="n">3</div>
+        <p>点击上传框放入示例图，再点 Generate——高亮自动移动到 Prompt；点 <code>Cyberpunk City</code> 示例词一键填入。</p>
+      </div>
+      <div class="try-item">
+        <div class="n">4</div>
+        <p>展开 <code>Advanced Settings</code> 看专业参数（Resolution / Seed / Negative Prompt）；两个必填项完成后点 Generate，等待出片。</p>
+      </div>
+    </div>
+
+    <div class="rv">
+      <div class="mode-toggle">
+        <button id="modeBefore" onclick="setMode('before')">Before · 旧版</button>
+        <button id="modeAfter" class="on-after" onclick="setMode('after')">After · 新版</button>
+      </div>
+      <div class="mode-label" id="modeLabel">当前为优化后：<b>按钮始终激活</b>，未填必填项时点击会自动滚动并高亮引导。</div>
+
+      <div class="panel" id="panel">
+        <div class="panel-head">
+          <h4>Image to Video</h4>
+          <span class="credits">170 credits</span>
+        </div>
+        <div class="panel-body" id="panelBody">
+
+          <div class="model-card" onclick="panelHint('演示环境暂不支持切换模型')">
+            <div class="g">G</div>
+            <div class="mt"><b>Google Nano Banana</b><span>Generate Smarter, Faster, Lighter</span></div>
+            <span class="chev">›</span>
+          </div>
+
+          <div id="fieldImage">
+            <div class="f-label-row">
+              <span class="f-label">Image <i>*</i></span>
+              <span class="f-opt">Add end frame</span>
+              <button class="switch" id="endFrameSwitch" aria-label="toggle end frame" onclick="toggleSwitch(this);toggleEndFrame()"></button>
+            </div>
+            <div class="field" id="imageField">
+              <div class="upload-box" id="uploadBox" onclick="fillImage()">
+                <svg class="ic up-ico" width="26" height="26" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="1.6"/><path d="M21 15l-4.5-4.5L9 18"/></svg>
+                Upload image
+              </div>
+              <div class="uploaded" id="uploadedBox" style="display:none;">
+                <img src="assets/aiai-result.png" alt="uploaded">
+                <div class="fi-name"><b>cooking-girl.png</b><span>PNG · 1.2 MB</span></div>
+                <button class="rm" onclick="clearImage(event)">✕</button>
+              </div>
+            </div>
+            <div class="field" id="endFrameField" style="display:none;margin-top:8px;">
+              <div class="upload-box" style="height:88px;" onclick="panelHint('尾帧为可选项，演示略')">
+                <svg class="ic up-ico" width="22" height="22" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="1.6"/><path d="M21 15l-4.5-4.5L9 18"/></svg>
+                Upload end frame (optional)
+              </div>
+            </div>
+          </div>
+
+          <div id="fieldPrompt">
+            <div class="f-label-row">
+              <span class="f-label">Prompt <i>*</i></span>
+              <span class="f-opt">Translate to English</span>
+              <button class="switch" aria-label="translate" onclick="toggleSwitch(this)"></button>
+            </div>
+            <div class="field" id="promptField">
+              <div class="prompt-area">
+                <textarea id="promptInput" placeholder="Describe your picture." maxlength="2000" oninput="onPromptInput()"></textarea>
+                <div class="prompt-foot">
+                  <div class="assist-wrap"><button class="assist" onclick="fillPrompt()">✦ Prompt Assistant</button></div>
+                  <span class="char-count" id="charCount">0/2000</span>
+                </div>
+              </div>
+            </div>
+            <div class="examples">
+              Examples:
+              <a onclick="setPrompt('A cyberpunk city at night, neon lights reflecting on wet streets, cinematic camera slowly pushing in.')">Cyberpunk City</a>
+              <a onclick="setPrompt('A night race through downtown Tokyo, motion blur, low-angle tracking shot.')">Night Race</a>
+              <a onclick="setPrompt('Van Gogh style starry night over a quiet village, swirling clouds, painterly motion.')">Van Gogh Style</a>
+            </div>
+          </div>
+
+          <div>
+            <div class="f-label-row"><span class="f-label">Video Size Format</span></div>
+            <div class="field size-card" onclick="panelHint('演示环境默认 9:16 竖屏')">
+              <div class="ratio-thumb"></div><b>9:16</b><span class="chev">›</span>
+            </div>
+          </div>
+
+          <div class="seg-row">
+            <span class="f-label">Audio</span>
+            <button class="switch on" aria-label="audio" onclick="toggleSwitch(this)"></button>
+          </div>
+
+          <div class="seg-row">
+            <span class="f-label">Duration</span>
+            <div class="duration-opts">
+              <span class="dur" onclick="setDur(this)"><span class="r"></span>4S</span>
+              <span class="dur on" onclick="setDur(this)"><span class="r"></span>6S</span>
+              <span class="dur" onclick="setDur(this)"><span class="r"></span>8S</span>
+            </div>
+          </div>
+
+          <div class="adv-wrap">
+            <div class="field adv-bar" id="advBar" onclick="toggleAdvanced()">
+              Advanced Settings <span class="chev">▾</span>
+            </div>
+          </div>
+
+          <div class="adv-group" id="advGroup">
+            <div>
+              <div class="f-label-row"><span class="f-label">Resolution</span></div>
+              <div class="res-seg">
+                <button class="on" onclick="setRes(this)">720P</button>
+                <button onclick="setRes(this)">1080P</button>
+              </div>
+            </div>
+            <div>
+              <div class="f-label-row"><span class="f-label">Seed</span></div>
+              <div class="seed-row">
+                <input class="seed-in" value="1836472901" onfocus="panelHint('Seed 用于复现生成结果')">
+                <button class="icon-btn" onclick="randomizeSeed()" title="随机">↻</button>
+              </div>
+            </div>
+            <div>
+              <div class="f-label-row"><span class="f-label">Negative Prompt</span></div>
+              <div class="field"><div class="prompt-area">
+                <textarea placeholder="Things you do not want to see in the video..." maxlength="2000"></textarea>
+              </div></div>
+            </div>
+          </div>
+
+        </div>
+        <div class="generate-zone">
+          <div class="dead-counter" id="deadCounter">无效点击 ×0</div>
+          <button class="gen-btn" id="genBtn" onclick="onGenerate()">
+            <span id="genLabel">Generate</span><span class="star">✦ 8</span>
+          </button>
+        </div>
+        <div class="panel-hint" id="panelHint"></div>
+
+        <div class="gen-overlay" id="genOverlay">
+          <div id="genLoading">
+            <div class="gen-ring" style="margin:0 auto;"></div>
+            <p style="margin-top:16px;">Generating your video…<br>通常需要 30–60 秒</p>
+          </div>
+          <div id="genDone" style="display:none;width:100%;">
+            <div class="result-card">
+              <img src="assets/aiai-result.png" alt="generated video">
+              <div class="rc-cap"><span class="ok-dot"></span>Video generated · 6S · 9:16 · 720P</div>
+            </div>
+            <div style="height:18px"></div>
+            <button class="try-again" onclick="resetDemo()">↺ 重新演示</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 06 结果 -->
+<section>
+  <div class="sec-head rv">
+    <span class="sec-num">06</span>
+    <h2 class="sec-title">结果：按钮亮起来之后</h2>
+  </div>
+  <p class="sec-lead rv">新表单灰度上线后，对比旧版本的关键指标：</p>
+  <div class="stats">
+    <div class="stat rv">
+      <div class="lbl">任务完成率</div>
+      <div class="num">68%</div>
+      <div class="before"><s>41%</s> 进入流程后成功出片的会话占比</div>
+      <span class="delta">+27 pt</span>
+    </div>
+    <div class="stat rv">
+      <div class="lbl">平均任务时长</div>
+      <div class="num">1'15"</div>
+      <div class="before"><s>3'40"</s> 从进入页面到提交生成</div>
+      <span class="delta">−66%</span>
+    </div>
+    <div class="stat rv">
+      <div class="lbl">订阅会员转化率</div>
+      <div class="num">3.0%</div>
+      <div class="before"><s>2.1%</s> 完成首次生成后 7 日内付费</div>
+      <span class="delta">+43%</span>
+    </div>
+    <div class="stat rv">
+      <div class="lbl">提交按钮无效点击</div>
+      <div class="num">−92%</div>
+      <div class="before"><s>基线</s> Clarity 录得的灰按钮死点击量</div>
+      <span class="delta">RAGE CLICK ↓</span>
+    </div>
+  </div>
+  <p class="footnote rv">* 口径：任务完成率 = 进入生成流程后成功提交生成任务的会话占比；无效点击 = Clarity 记录的灰显状态按钮点击次数。灰度样本约 5 万会话，观察期 21 天，覆盖 Image to Video 主流程。</p>
+</section>
+
+<footer>
+  <div class="big">Thanks for <span class="gr">scrolling</span></div>
+  <p>AIAI.com 表单交互重构 · UX Case Study · 2026 · <a href="index.html">← 返回全部案例</a></p>
+</footer>
+
+<script>
+/* ================= 原型逻辑 ================= */
+let mode = 'after';
+let imageFilled = false;
+let deadClicks = 0;
+
+const panel = document.getElementById('panel');
+const panelBody = document.getElementById('panelBody');
+const genBtn = document.getElementById('genBtn');
+const genLabel = document.getElementById('genLabel');
+const deadCounter = document.getElementById('deadCounter');
+const hintEl = document.getElementById('panelHint');
+let hintTimer = null;
+
+function setMode(m){
+  mode = m;
+  panel.classList.toggle('before', m==='before');
+  document.getElementById('modeBefore').className = m==='before' ? 'on-before' : '';
+  document.getElementById('modeAfter').className = m==='after' ? 'on-after' : '';
+  document.getElementById('modeLabel').innerHTML = m==='before'
+    ? '当前为优化前：必填未填时按钮<b>灰显无响应</b>——试着多点几次。'
+    : '当前为优化后：<b>按钮始终激活</b>，未填必填项时点击会自动滚动并高亮引导。';
+  if(m==='before'){ deadClicks = 0; deadCounter.textContent='无效点击 ×0'; }
+  deadCounter.classList.remove('show');
+  clearErrors();
+}
+
+function toggleSwitch(el){ el.classList.toggle('on'); }
+function toggleEndFrame(){
+  const on = document.getElementById('endFrameSwitch').classList.contains('on');
+  document.getElementById('endFrameField').style.display = on ? 'block' : 'none';
+}
+function setDur(el){ el.parentNode.querySelectorAll('.dur').forEach(d=>d.classList.remove('on')); el.classList.add('on'); }
+function setRes(el){ el.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('on')); el.classList.add('on'); }
+function randomizeSeed(){ document.querySelector('.seed-in').value = Math.floor(Math.random()*2e9); }
+
+function toggleAdvanced(){
+  if(mode==='before') return;
+  document.getElementById('advBar').classList.toggle('open');
+  document.getElementById('advGroup').classList.toggle('open');
+}
+
+function fillImage(){
+  imageFilled = true;
+  document.getElementById('uploadBox').style.display='none';
+  document.getElementById('uploadedBox').style.display='flex';
+  clearErr(document.getElementById('imageField'));
+}
+function clearImage(e){
+  e.stopPropagation();
+  imageFilled = false;
+  document.getElementById('uploadBox').style.display='flex';
+  document.getElementById('uploadedBox').style.display='none';
+}
+function setPrompt(t){
+  const ta = document.getElementById('promptInput');
+  ta.value = t; onPromptInput();
+  clearErr(document.getElementById('promptField'));
+}
+function fillPrompt(){
+  setPrompt('In the kitchen, a little girl puts on smart glasses. Guided by a smart assistant, she makes her first dish and is very happy. The video focuses on showing the cooking process.');
+  panelHint('Prompt Assistant 已帮你生成描述');
+}
+function onPromptInput(){
+  document.getElementById('charCount').textContent = document.getElementById('promptInput').value.length + '/2000';
+}
+
+function panelHint(msg){
+  hintEl.textContent = msg;
+  hintEl.classList.add('show');
+  clearTimeout(hintTimer);
+  hintTimer = setTimeout(()=>hintEl.classList.remove('show'), 2200);
+}
+
+function markErr(el){
+  el.classList.remove('err'); void el.offsetWidth; el.classList.add('err');
+}
+function clearErr(el){ el.classList.remove('err'); }
+function clearErrors(){ document.querySelectorAll('.field.err').forEach(f=>f.classList.remove('err')); }
+
+function scrollToField(fieldId, fieldEl){
+  document.getElementById(fieldId).scrollIntoView({behavior:'smooth', block:'center'});
+  setTimeout(()=>markErr(fieldEl), 350);
+}
+
+function onGenerate(){
+  if(mode==='before'){
+    deadClicks++;
+    deadCounter.textContent = '无效点击 ×' + deadClicks;
+    deadCounter.classList.remove('show'); void deadCounter.offsetWidth; deadCounter.classList.add('show');
+    genBtn.classList.remove('shake'); void genBtn.offsetWidth; genBtn.classList.add('shake');
+    panelHint('按钮灰显，没有任何响应——用户只能反复点');
+    return;
+  }
+  // after 模式：始终激活，引导到第一个未填必填项
+  if(!imageFilled){
+    scrollToField('fieldImage', document.getElementById('imageField'));
+    panelHint('还差一步：先上传一张图片');
+    return;
+  }
+  if(!document.getElementById('promptInput').value.trim()){
+    scrollToField('fieldPrompt', document.getElementById('promptField'));
+    panelHint('再描述一下你想要的画面');
+    return;
+  }
+  // 生成
+  const overlay = document.getElementById('genOverlay');
+  document.getElementById('genLoading').style.display='block';
+  document.getElementById('genDone').style.display='none';
+  overlay.classList.add('show');
+  setTimeout(()=>{
+    document.getElementById('genLoading').style.display='none';
+    document.getElementById('genDone').style.display='block';
+  }, 1800);
+}
+
+function resetDemo(){
+  document.getElementById('genOverlay').classList.remove('show');
+  clearImage(new Event('click'));
+  document.getElementById('promptInput').value=''; onPromptInput();
+  clearErrors();
+  panelBody.scrollTo({top:0, behavior:'smooth'});
+}
+
+/* ================= 滚动出现 ================= */
+const io = new IntersectionObserver(es=>{
+  es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('on'); io.unobserve(e.target); } });
+},{threshold:.15});
+document.querySelectorAll('.rv').forEach(el=>io.observe(el));
+</script>
+</body>
+</html>

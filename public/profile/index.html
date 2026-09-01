@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<base href="/profile/">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>张笑山 Johnny — UX 负责人</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FFFFFF;
+  --ink:#111111;
+  --dim:#6B6B6B;
+  --faint:#9A9A9A;
+  --line:#E8E8E8;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:'Noto Sans SC','Space Grotesk',-apple-system,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--ink);color:#fff;}
+.en{font-family:'Space Grotesk','Noto Sans SC',sans-serif;}
+
+.wrap{max-width:760px;margin:0 auto;padding:0 32px;}
+
+/* ---------- header ---------- */
+header{padding:120px 0 64px;}
+.name{
+  font-size:clamp(40px,6vw,64px);font-weight:900;letter-spacing:-.02em;line-height:1.1;
+}
+.name .en{display:block;font-size:.42em;font-weight:500;color:var(--dim);letter-spacing:0;margin-top:10px;}
+.role{margin-top:22px;font-size:17px;color:var(--dim);line-height:1.8;}
+.bio{margin-top:28px;font-size:17px;line-height:2;color:var(--ink);max-width:620px;}
+.bio b{font-weight:700;}
+.contact{margin-top:28px;font-size:15px;color:var(--dim);}
+.contact a{color:var(--ink);text-decoration:none;border-bottom:1px solid var(--ink);padding-bottom:1px;transition:opacity .2s;}
+.contact a:hover{opacity:.55;}
+
+/* ---------- case list ---------- */
+.cases{border-top:1px solid var(--line);}
+.cases h2{
+  font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--faint);
+  padding:28px 0 8px;font-family:'Space Grotesk','Noto Sans SC',sans-serif;
+}
+.case{
+  display:flex;gap:20px;align-items:flex-start;text-decoration:none;color:var(--ink);
+  padding:34px 0;border-bottom:1px solid var(--line);
+  transition:padding-left .3s cubic-bezier(.2,.7,.2,1);
+}
+.case-logo{
+  width:56px;height:56px;border-radius:14px;flex:0 0 56px;
+  border:1px solid var(--line);background:#fff;
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
+}
+.case-logo.dark{background:#141416;border-color:#141416;}
+.case-logo img{max-width:72%;max-height:72%;object-fit:contain;}
+.case .c-main{flex:1;min-width:0;}
+.case:hover{padding-left:14px;}
+.case .c-row{display:flex;align-items:baseline;justify-content:space-between;gap:20px;}
+.case h3{
+  font-size:clamp(22px,3vw,30px);font-weight:900;letter-spacing:-.01em;line-height:1.35;
+}
+.case h3 .arrow{
+  display:inline-block;margin-left:10px;font-family:'Space Grotesk';font-weight:500;
+  opacity:0;transform:translateX(-8px);transition:opacity .25s,transform .25s;
+}
+.case:hover h3 .arrow{opacity:1;transform:none;}
+.case .year{font-family:'Space Grotesk';font-size:14px;color:var(--faint);flex:0 0 auto;}
+.case p{margin-top:10px;font-size:15px;line-height:1.8;color:var(--dim);max-width:600px;}
+.case .tags{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;}
+.case .tags span{
+  font-size:12px;color:var(--dim);border:1px solid var(--line);border-radius:999px;padding:4px 12px;
+}
+
+/* ---------- side projects ---------- */
+.side{border-top:1px solid var(--line);}
+.side h2{
+  font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--faint);
+  padding:28px 0 8px;font-family:'Space Grotesk','Noto Sans SC',sans-serif;
+}
+.side .note{font-size:13px;color:var(--faint);padding-bottom:8px;}
+.app{
+  display:flex;align-items:center;gap:18px;text-decoration:none;color:var(--ink);
+  padding:22px 0;border-bottom:1px solid var(--line);
+  transition:padding-left .3s cubic-bezier(.2,.7,.2,1);
+}
+.app:hover{padding-left:14px;}
+.app img{
+  width:52px;height:52px;border-radius:13px;flex:0 0 52px;object-fit:cover;
+  border:1px solid var(--line);background:#fff;
+}
+.app .a-main{flex:1;min-width:0;}
+.app .a-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.app h3{font-size:19px;font-weight:900;letter-spacing:-.01em;}
+.app h3 .en{font-family:'Space Grotesk';font-weight:500;font-size:13px;color:var(--faint);margin-left:8px;}
+.app .a-os{
+  font-size:11px;font-weight:700;color:var(--dim);border:1px solid var(--line);
+  border-radius:999px;padding:3px 10px;letter-spacing:.5px;
+}
+.app p{margin-top:6px;font-size:14px;line-height:1.7;color:var(--dim);}
+.app .go{
+  font-family:'Space Grotesk';font-size:13px;font-weight:500;color:var(--faint);
+  white-space:nowrap;transition:color .2s,transform .25s;flex:0 0 auto;
+}
+.app:hover .go{color:var(--ink);transform:translateX(3px);}
+
+/* ---------- footer ---------- */
+footer{padding:56px 0 64px;}
+footer .wrap{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;}
+footer p{font-size:13px;color:var(--faint);}
+footer a{color:var(--dim);text-decoration:none;border-bottom:1px solid var(--line);}
+footer a:hover{color:var(--ink);}
+
+@media(max-width:640px){
+  header{padding:88px 0 48px;}
+}
+</style>
+</head>
+<body>
+
+<header class="wrap">
+  <h1 class="name">张笑山<span class="en">Johnny Zhang</span></h1>
+  <p class="role">UX 负责人 · 杭州</p>
+  <p class="bio">我负责海外 C 端产品的体验设计，目前在 <b>AIAI.com</b>（AI 内容生产平台）担任 UX 负责人。关注用数据发现真实问题、用交互细节修复漏斗断点——下面两个案例，各讲了一个这样的故事。</p>
+  <p class="contact"><a href="mailto:903107058@qq.com">903107058@qq.com</a></p>
+</header>
+
+<main class="cases wrap">
+  <h2>Case Studies</h2>
+
+  <a class="case" href="aiai.html">
+    <span class="case-logo dark"><img src="assets/aiai-logo.png" alt="AIAI.com logo"></span>
+    <div class="c-main">
+      <div class="c-row">
+        <h3>按钮灰掉了，用户也走掉了<span class="arrow">→</span></h3>
+        <span class="year">2026</span>
+      </div>
+      <p>AIAI.com 生成表单交互重构：打破「必填未填就灰显」的默认规范，让提交按钮始终激活、点击瞬间主动带路——任务完成率 41% → 68%。</p>
+      <div class="tags"><span>Clarity 行为分析</span><span>表单交互</span><span>可用性测试</span><span>可操作原型</span></div>
+    </div>
+  </a>
+
+  <a class="case" href="findly.html">
+    <span class="case-logo"><img src="assets/findly-logo.png" alt="Findly logo"></span>
+    <div class="c-main">
+      <div class="c-row">
+        <h3>3 秒钟，让博主拿到心仪的那条链接<span class="arrow">→</span></h3>
+        <span class="year">2026</span>
+      </div>
+      <p>Findly Bio 链接创建体验优化：用实时校验 + 智能推荐修复撞名断点，把「重新想一个名字」变成「点一下推荐」——Bio 创建率 61% → 84%。</p>
+      <div class="tags"><span>可用性测试</span><span>方案对比</span><span>状态机设计</span><span>可操作原型</span></div>
+    </div>
+  </a>
+</main>
+
+<section class="side wrap">
+  <h2>Side Projects</h2>
+  <p class="note">工作之余独立设计并开发的 App，均已上架 App Store。</p>
+
+  <a class="app" href="https://apps.apple.com/cn/app/%E5%91%A8%E6%9C%AB%E5%90%83%E5%95%A5/id6778791593" target="_blank" rel="noopener">
+    <img src="assets/app-whattoeat.png" alt="周末吃啥 App 图标">
+    <div class="a-main">
+      <div class="a-row"><h3>周末吃啥<span class="en">WhatToeat</span></h3><span class="a-os">iOS</span></div>
+      <p>记住全家的口味、忌口和厨房条件，一键搭配一桌全家都能吃的家常饭。</p>
+    </div>
+    <span class="go">App Store ↗</span>
+  </a>
+
+  <a class="app" href="https://apps.apple.com/cn/app/%E5%91%A8%E6%98%93%E6%98%93%E8%A7%82-%E5%85%AD%E5%8D%81%E5%9B%9B%E5%8D%A6%E5%AD%A6%E4%B9%A0%E6%9F%A5%E8%AF%A2/id6760003188" target="_blank" rel="noopener">
+    <img src="assets/app-iching.png" alt="周易易观 App 图标">
+    <div class="a-main">
+      <div class="a-row"><h3>周易易观<span class="en">IChingWisdom</span></h3><span class="a-os">iOS</span></div>
+      <p>依托《易经》六十四卦的智慧体系，为人生关键节点提供多维决策参考。</p>
+    </div>
+    <span class="go">App Store ↗</span>
+  </a>
+
+  <a class="app" href="https://apps.apple.com/cn/app/%E6%84%8F%E5%9B%BE%E9%9B%86/id6760753067?mt=12" target="_blank" rel="noopener">
+    <img src="assets/app-inspiradb.svg" alt="意图集 App 图标">
+    <div class="a-main">
+      <div class="a-row"><h3>意图集<span class="en">Inspiradb</span></h3><span class="a-os">macOS</span></div>
+      <p>为设计师打造的 AI 图片管理工具：标签体系自动优化，自然语言直接搜图。</p>
+    </div>
+    <span class="go">App Store ↗</span>
+  </a>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>© 2026 张笑山 Johnny Zhang</p>
+    <p><a href="mailto:903107058@qq.com">903107058@qq.com</a></p>
+  </div>
+</footer>
+
+</body>
+</html>

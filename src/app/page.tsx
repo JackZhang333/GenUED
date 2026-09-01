@@ -145,6 +145,12 @@ Here, I share insights and reflections on product design, AI applications, and h
 
 const projects = [
   {
+    name: "Profile",
+    href: "/profile",
+    description: "Design case studies & side projects",
+    external: false,
+  },
+  {
     name: "Writing",
     href: "/writing",
     description: "Notes on design and other things",

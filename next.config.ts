@@ -3,6 +3,9 @@ import path from "path";
 
 const nextConfig: NextConfig = {
   devIndicators: false,
+  async rewrites() {
+    return [{ source: "/profile", destination: "/profile/index.html" }];
+  },
   turbopack: {
     root: path.resolve(__dirname),
   },

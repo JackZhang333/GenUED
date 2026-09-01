@@ -8,6 +8,7 @@ import { FileText2 } from "@/components/icons/FileText2";
 import { Headphones3 } from "@/components/icons/Headphones3";
 import { Home } from "@/components/icons/Home";
 import { Triangle } from "@/components/icons/Triangle";
+import { UserCircle } from "@/components/icons/UserCircle";
 import { IconProps } from "@/components/icons/types";
 
 export interface NavigationItem {
@@ -37,6 +38,15 @@ export const navigationItems: NavigationItem[] = [
     icon: FileText2,
     keywords: ["writing", "blog", "posts"],
     isActive: (pathname) => pathname.startsWith("/writing"),
+    section: "main",
+  },
+  {
+    id: "profile",
+    label: "Profile",
+    href: "/profile",
+    icon: UserCircle,
+    keywords: ["profile", "portfolio", "cases", "作品"],
+    isActive: (pathname) => pathname.startsWith("/profile"),
     section: "main",
   },
   // {
