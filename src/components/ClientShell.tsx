@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { PropsWithChildren } from "react";
 import { Toaster } from "sonner";
 
@@ -9,6 +10,13 @@ import { MobileNavMenu } from "@/components/MobileNavMenu";
 import { GlobalTopBar } from "./GlobalTopBar";
 
 export function ClientShell({ children }: PropsWithChildren) {
+  const pathname = usePathname();
+
+  // Portfolio case studies have their own full-width layout and navigation.
+  if (pathname.startsWith("/profile/")) {
+    return <>{children}</>;
+  }
+
   return (
     <>
       <Toaster position="bottom-center" />
