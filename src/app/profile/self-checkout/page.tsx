@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 export const metadata: Metadata = {
   title: "便利店自助收银流程优化 | Johnny Zhang",
   description:
-    "店加自助收银体验设计案例：通过现场观察、快捷支付与状态反馈优化，让首次使用者独立完成结账。",
+    "店加自助收银产品设计案例：通过现场观察、快捷支付与状态反馈优化，让首次使用者独立完成结账。",
 };
 
 const assetPath = "/profile/assets/self-checkout/";
@@ -175,7 +175,7 @@ export default function SelfCheckoutCasePage() {
           <header className="flex flex-wrap items-center justify-between gap-6">
             <div className="flex flex-wrap items-center gap-3">
               <a href="/profile" className="text-lg font-semibold sm:text-xl">
-                ← UX DESIGN PORTFOLIO
+                ← PRODUCT DESIGN PORTFOLIO
               </a>
               <span aria-hidden="true" className="h-4 w-px bg-[#e2e8f0]" />
               <span className="text-sm text-[#64748b]">CASE STUDY</span>
@@ -194,7 +194,7 @@ export default function SelfCheckoutCasePage() {
           <div className="flex flex-col gap-12 py-4 xl:py-10">
             <div className="flex flex-col gap-6">
               <span className="w-fit rounded border border-[#99f6e4] bg-[#f0fdfa] px-2.5 py-1 text-xs font-semibold text-[#0d9488]">
-                交互设计 / 体验架构优化
+                产品设计 / 流程优化
               </span>
               <h1 className="text-[38px] leading-[1.2] font-semibold sm:text-[48px] xl:min-h-[100px] xl:text-[56px]">
                 便利店自助收银流程优化
@@ -203,7 +203,7 @@ export default function SelfCheckoutCasePage() {
                 从「需要店员教」到「首次使用也能独立完成」
               </p>
               <ul className="flex flex-wrap items-center gap-6 pt-3 text-sm text-[#64748b]">
-                <li className="font-semibold text-[#0f172a]">UX 负责人</li>
+                <li className="font-semibold text-[#0f172a]">数字化产品经理</li>
                 <li aria-hidden="true">·</li>
                 <li className="text-[#334155]">店加</li>
                 <li aria-hidden="true">·</li>
@@ -417,7 +417,7 @@ export default function SelfCheckoutCasePage() {
                   技术响应极速调优
                 </h3>
                 <p className="text-sm leading-relaxed text-[#475569]">
-                  UX
+                  产品设计
                   团队联合支付研发对付款码请求、后台清算到前台响应的链路进行深度吞吐量调优。将交易等待耗时由原本的平均{" "}
                   <strong className="text-[#ef4444]">12 秒级</strong> 直接压降至{" "}
                   <strong className="text-[#0d9488]">4 秒内</strong>，彻底减少物理延迟。
@@ -488,7 +488,7 @@ export default function SelfCheckoutCasePage() {
           </section>
           <Callout eyebrow="MY CONTRIBUTION & LEADERSHIP">
             <p className="text-[15px] leading-relaxed text-[#334155]">
-              作为该项目的 <strong className="text-[#0f172a]">UX 负责人</strong>
+              作为该项目的 <strong className="text-[#0f172a]">数字化产品经理</strong>
               ，我的核心价值不仅体现在交互原型的输出，更体现在对团队认知的对齐：通过实地观察带回真实行为特征、用访谈解读心智动机、用严格的可用性测试数据说服多方业务并推动研发重构支付逻辑，使体验的价值首次在线下业务大仓中得到量化证明与完美落地。
             </p>
           </Callout>

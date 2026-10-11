@@ -92,7 +92,7 @@ function CoverHero() {
               ROLE:
             </p>
             <p className="relative shrink-0 font-medium text-[#a0a0a0]" data-node-id="20:14">
-              交互设计 / 用户研究
+              产品设计 / 用户研究
             </p>
           </div>
           <div
